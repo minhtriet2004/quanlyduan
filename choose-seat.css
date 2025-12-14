@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css?family=Lato&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #1b1e2e;  
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: #fff;
+  font-family: 'Lato', sans-serif;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  min-height: 100vh;
+  margin: 0;
+}
+
+/* Lớp blur background */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    backdrop-filter: blur(10px);
+    background: rgba(0,0,0,0.55);
+    z-index: -1;
+}
+
+/* ======= CONTAINER TRUNG TÂM – TO NHƯ ẢNH 2 ======= */
+.big-wrapper {
+    margin-top: 40px;
+    background: rgba(255,255,255,0.05);
+    width: 900px;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.4);
+}
+
+/* ======= PHẦN TÊN PHIM ======= */
+.movie-container {
+  margin-bottom: 25px;
+}
+
+.movie-container h2 {
+  font-size: 30px;
+  font-weight: 700;
+  margin: 10px 0;
+}
+
+/* ======= SHOWCASE ======= */
+.showcase {
+  background: rgba(255,255,255,0.05);
+  padding: 12px 20px;
+  border-radius: 8px;
+  list-style-type: none;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin: 15px 0 25px;
+}
+
+.showcase li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  color: #ddd;
+}
+
+/* ======= GHẾ NGỒI ======= */
+.container {
+  perspective: 1000px;
+  margin-bottom: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.screen {
+  background-color: #fff;
+  height: 90px;
+  width: 80%;
+  margin: 20px 0 40px;
+  transform: rotateX(-45deg);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.6);
+}
+
+/* Ghế to hơn */
+.seat {
+  background-color: #444451;
+  height: 22px;
+  width: 26px;
+  margin: 6px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  transition: 0.15s;
+}
+
+.seat.selected {
+  background-color: #6feaf6;
+}
+
+.seat.occupied {
+  background-color: #fff;
+  cursor: not-allowed;
+}
+
+.seat:hover:not(.occupied) {
+  transform: scale(1.25);
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+}
+
+/* ======= TEXT ======= */
+p.text {
+  margin: 10px 0;
+  font-size: 18px;
+  text-align: center;
+}
+
+p.text span {
+  color: #6feaf6;
+  font-weight: bold;
+  font-size: 20px;
+}
