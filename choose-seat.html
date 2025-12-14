@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Seat Movie</title>
+    <link rel="stylesheet" href="css/choose-seat.css">
+
+</head>
+<body>
+    <div class="movie-container">
+        <label>Bạn đang đặt vé cho phim:</label>
+        <h2 id="movieName" style="color:white; margin-top:5px;"></h2>
+
+
+        
+        <ul class="showcase">
+            <li>
+                <div class="seat"></div>
+                <small>N/A</small>
+            </li>
+            <li>
+                <div class="seat selected"></div>
+                <small>Đã chọn</small>
+            </li>
+            <li>
+                <div class="seat occupied"></div>
+                <small>Đã có người đặt</small>
+            </li>
+        </ul>
+    </div>
+    <div class="container">
+        <div class="screen"></div>
+
+        <div class="row">
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat occupied"></div>
+            <div class="seat occupied"></div>
+            <div class="seat"></div>
+        </div>
+
+        <div class="row">
+            <div class="seat occupied"></div>
+            <div class="seat occupied"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+        </div>
+
+        <div class="row">
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat occupied"></div>
+            <div class="seat occupied"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+        </div>
+
+        <div class="row">
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat occupied"></div>
+            <div class="seat occupied"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+        </div>
+
+        <div class="row">
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat occupied"></div>
+            <div class="seat occupied"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+        </div>
+
+        <div class="row">
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat occupied"></div>
+            <div class="seat occupied"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+        </div>
+
+        <div class="row">
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat"></div>
+            <div class="seat occupied"></div>
+            <div class="seat occupied"></div>
+            <div class="seat occupied"></div>
+            <div class="seat occupied"></div>
+        </div>
+    </div>
+    <p class="text">
+        Bạn đã chọn <span id="count">0</span> chỗ. Giá vé: VND<span id="total">0</span>
+    </p>
+    <div class="action-buttons" style="margin-top: 20px; display: flex; gap: 20px; justify-content: center;">
+    
+        <button id="confirmBtn" 
+            style="padding: 12px 25px; background:#00b7ff; border:none; border-radius:6px;
+                font-size:16px; color:white; cursor:pointer; font-weight:bold;">
+            XÁC NHẬN ĐẶT VÉ
+        </button>
+
+        <button id="clearBtn" 
+            style="padding: 12px 25px; background:#ff4e4e; border:none; border-radius:6px;
+                font-size:16px; color:white; cursor:pointer; font-weight:bold;">
+            XÓA LỰA CHỌN
+        </button>
+
+    </div>
+    <script src="js/main.js"></script>
+</body>
+</html>

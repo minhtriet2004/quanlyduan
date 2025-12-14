@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông Tin Phim</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f3f3f3;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+        }
+        .movie-info {
+            display: flex;
+        }
+        .movie-info img {
+            width: 300px;
+            height: 430px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-right: 25px;
+        }
+        h2 { margin-top: 0; }
+        label {
+            font-weight: bold;
+        }
+        select, button {
+            padding: 10px;
+            margin-top: 15px;
+            width: 200px;
+        }
+        button {
+            background: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <div class="movie-info">
+        <img id="poster">
+        <div>
+            <h2 id="title"></h2>
+            <p><b>Thể loại:</b> <span id="genre"></span></p>
+            <p><b>Thời lượng:</b> <span id="duration"></span> phút</p>
+            <p><b>Khởi chiếu:</b> <span id="release"></span></p>
+
+            <label>Chọn số lượng vé:</label><br>
+            <select id="quantity">
+                <option value="1">1 vé</option>
+                <option value="2">2 vé</option>
+                <option value="3">3 vé</option>
+                <option value="4">4 vé</option>
+                <option value="5">5 vé</option>
+            </select>
+
+            <br><br>
+            <button onclick="nextStep()">Tiếp tục</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// DATA PHIM
+const movies = {
+    wicked2: {
+        title: "WICKED: PHẦN 2",
+        genre: "Nhạc kịch, Thần thoại",
+        duration: 138,
+        release: "21-11-2025",
+        poster: "img/wicked.jpg"
+    },
+    longdienhuong: {
+        title: "TRUY TÌM LONG DIÊN HƯƠNG",
+        genre: "Hài",
+        duration: 103,
+        release: "14-11-2025",
+        poster: "img/truytimlongdienhuong.jpg"
+    },
+    anhtraisayxe: {
+        title: "ANH TRAI SAY XE",
+        genre: "Hài",
+        duration: 110,
+        release: "21-11-2025",
+        poster: "img/anhtraisayxe.jpg"
+    },
+    gdragon: {
+        title: "G-DRAGON IN CINEMA",
+        genre: "Tài liệu",
+        duration: 103,
+        release: "11-11-2025",
+        poster: "img/gdragon.jpg"
+    }
+};
+
+
+// Lấy tên phim từ URL
+const urlParams = new URLSearchParams(window.location.search);
+const movieKey = urlParams.get("movie");
+const movie = movies[movieKey];
+
+// Gán vào HTML
+document.getElementById("poster").src = movie.poster;
+document.getElementById("title").innerText = movie.title;
+document.getElementById("genre").innerText = movie.genre;
+document.getElementById("duration").innerText = movie.duration;
+document.getElementById("release").innerText = movie.release;
+
+
+// Hàm chuyển sang chọn ghế
+function nextStep() {
+    const qty = document.getElementById("quantity").value;
+
+    // Lưu dữ liệu vào localStorage để trang chọn ghế dùng được
+    localStorage.setItem("selectedMovie", movieKey);
+    localStorage.setItem("ticketQuantity", qty);
+
+    // Chuyển sang trang chọn ghế
+    window.location.href = "choose-seat.html";
+}
+
+</script>
+
+</body>
+</html>
