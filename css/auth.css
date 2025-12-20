@@ -1,0 +1,97 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #0b0f2b;
+    color: #fff;
+}
+
+/* ===== HEADER ===== */
+.header {
+    background: #0a0d24;
+    padding: 20px 60px;
+}
+
+.logo {
+    color: #ff1f1f;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* ===== CONTAINER ===== */
+.auth-container {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== CARD ===== */
+.auth-card {
+    background: #141a3a;
+    padding: 40px 35px;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.4);
+}
+
+/* ===== TITLE ===== */
+.auth-card h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-size: 26px;
+}
+
+/* ===== INPUT ===== */
+.auth-card input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: none;
+    font-size: 14px;
+}
+
+/* ===== BUTTON ===== */
+.auth-card button {
+    width: 100%;
+    background: #ff1f1f;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    font-size: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.auth-card button:hover {
+    opacity: 0.9;
+}
+
+/* ===== SWITCH ===== */
+.switch {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.switch a {
+    color: #ff8c8c;
+    text-decoration: none;
+}
+
+.switch a:hover {
+    text-decoration: underline;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 480px) {
+    .auth-card {
+        margin: 0 20px;
+    }
+}
