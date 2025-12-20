@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Hệ thống rạp</title>
+  <link rel="stylesheet" href="/css/rap.css">
+</head>
+<body>
+
+<!-- HEADER (dùng lại header trang chủ) -->
+<header class="header">
+  <div class="logo">RAP PHIM</div>
+  <nav class="nav">
+    <a href="index.html">Trang chủ</a>
+    <a href="#">Phim đang chiếu</a>
+    <a href="#">Phim sắp chiếu</a>
+    <a href="#" class="active">Rạp</a>
+    <a href="#">Khuyến mãi</a>
+  </nav>
+</header>
+
+<!-- CONTENT -->
+<div class="rap-container">
+
+  <h1 class="rap-title">HỆ THỐNG RẠP</h1>
+
+  <!-- DANH SÁCH TỈNH -->
+  <div class="city-list">
+    <span class="city active" data-city="hcm">Hồ Chí Minh</span>
+    <span class="city" data-city="hn">Hà Nội</span>
+    <span class="city" data-city="dn">Đà Nẵng</span>
+    <span class="city" data-city="ct">Cần Thơ</span>
+  </div>
+
+  <!-- DANH SÁCH RẠP -->
+  <div class="cinema-list" id="cinemaList"></div>
+
+</div>
+
+<script src="js/rap.js"></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #0b0f2b;
+  color: #fff;
+}
+
+/* HEADER */
+.header {
+  height: 70px;
+  padding: 0 60px;
+  background: linear-gradient(to right, #0b0f2b, #151a44);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  color: #ff1f1f;
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.nav {
+  display: flex;
+  gap: 28px;
+}
+
+.nav a {
+  color: #fff;
+  text-decoration: none;
+  padding-bottom: 6px;
+}
+
+.nav a.active {
+  color: #ff1f1f;
+  border-bottom: 2px solid #ff1f1f;
+}
+
+/* CONTAINER */
+.rap-container {
+  padding: 60px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+/* TITLE */
+.rap-title {
+  text-align: center;
+  font-size: 36px;
+  margin-bottom: 40px;
+  color: #ff8c8c;
+}
+
+/* CITY LIST */
+.city-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.city {
+  cursor: pointer;
+  font-size: 16px;
+  color: #cfd3ff;
+}
+
+.city.active {
+  color: #ff1f1f;
+  text-decoration: underline;
+}
+
+/* CINEMA LIST */
+.cinema-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.cinema-item {
+  background: #141a3a;
+  padding: 15px 20px;
+  border-radius: 12px;
+  transition: 0.3s;
+}
+
+.cinema-item:hover {
+  transform: translateY(-5px);
+  background: #1b2150;
+}
