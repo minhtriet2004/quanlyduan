@@ -1,0 +1,109 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #0b0f2b;
+    color: #fff;
+}
+
+/* ===== CONTAINER ===== */
+.container {
+    padding: 60px;
+    display: flex;
+    justify-content: center;
+}
+
+/* ===== CARD ===== */
+.movie-info {
+    background: #141a3a;
+    border-radius: 20px;
+    padding: 30px 40px;
+    display: flex;
+    gap: 40px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+/* ===== POSTER ===== */
+.movie-info img {
+    width: 300px;
+    height: 420px;
+    background: #000;
+    border-radius: 14px;
+    object-fit: contain;     /* KHÔNG CẮT ẢNH */
+}
+
+/* ===== INFO ===== */
+.movie-info h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+.movie-info p {
+    font-size: 15px;
+    margin-bottom: 10px;
+    color: #cfd3ff;
+}
+
+.movie-info b {
+    color: #fff;
+}
+
+/* ===== SELECT ===== */
+.movie-info label {
+    display: block;
+    margin: 20px 0 8px;
+    font-weight: bold;
+}
+
+.movie-info select {
+    width: 220px;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: none;
+}
+
+/* ===== TOTAL PRICE ===== */
+#totalPrice {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffb3b3;
+}
+
+/* ===== BUTTON ===== */
+.movie-info button {
+    background: #ff1f1f;
+    color: #fff;
+    border: none;
+    padding: 12px 32px;
+    font-size: 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.movie-info button:hover {
+    opacity: 0.9;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+    .movie-info {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .movie-info img {
+        width: 260px;
+        height: 380px;
+    }
+
+    .movie-info select {
+        width: 100%;
+    }
+}
