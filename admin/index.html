@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Quản Lý Rạp Phim</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-film"></i> ADMIN PANEL</h2>
+            <button class="toggle-sidebar"><i class="fas fa-bars"></i></button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#dashboard" class="nav-link active" data-section="dashboard">
+                <i class="fas fa-chart-line"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#movies" class="nav-link" data-section="movies">
+                <i class="fas fa-film"></i>
+                <span>Quản Lý Phim</span>
+            </a>
+            <a href="#showings" class="nav-link" data-section="showings">
+                <i class="fas fa-clock"></i>
+                <span>Suất Chiếu</span>
+            </a>
+            <a href="#bookings" class="nav-link" data-section="bookings">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Đơn Vé</span>
+            </a>
+            <a href="#users" class="nav-link" data-section="users">
+                <i class="fas fa-users"></i>
+                <span>Người Dùng</span>
+            </a>
+            <a href="#reports" class="nav-link" data-section="reports">
+                <i class="fas fa-file-chart-line"></i>
+                <span>Báo Cáo</span>
+            </a>
+            <a href="#" id="logout" class="nav-link logout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng Xuất</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- TOP BAR -->
+        <div class="topbar">
+            <div class="search-box">
+                <input type="text" placeholder="Tìm kiếm...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+            <div class="topbar-right">
+                <div class="notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="profile">
+                    <img src="https://via.placeholder.com/40" alt="Admin">
+                    <span id="admin-name">Admin</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENT SECTIONS -->
+        <div class="content">
+
+            <!-- DASHBOARD -->
+            <section id="dashboard" class="section active">
+                <div class="section-header">
+                    <h1>Dashboard</h1>
+                    <p>Tổng quan hoạt động</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon revenue">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Doanh Thu</h3>
+                            <p class="stat-value" id="total-revenue">0 VND</p>
+                            <p class="stat-change positive">+12% so với tháng trước</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon bookings">
+                            <i class="fas fa-ticket-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Đơn Hàng</h3>
+                            <p class="stat-value" id="total-bookings">0</p>
+                            <p class="stat-change positive">+8 đơn hôm nay</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon movies">
+                            <i class="fas fa-film"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Số Phim</h3>
+                            <p class="stat-value" id="total-movies">0</p>
+                            <p class="stat-change">Đang chiếu</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon users">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Người Dùng</h3>
+                            <p class="stat-value" id="total-users">0</p>
+                            <p class="stat-change positive">+15 khách mới</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <h2>Đơn Vé Gần Đây</h2>
+                        <table id="recent-bookings">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Khách Hàng</th>
+                                    <th>Phim</th>
+                                    <th>Giá</th>
+                                    <th>Trạng Thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-bookings-body">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; padding: 20px;">Không có đơn hàng</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card">
+                        <h2>Phim Phổ Biến</h2>
+                        <div id="popular-movies"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- QUẢN LÝ PHIM -->
+            <section id="movies" class="section">
+                <div class="section-header">
+                    <h1>Quản Lý Phim</h1>
+                    <button class="btn btn-primary" id="add-movie-btn">
+                        <i class="fas fa-plus"></i> Thêm Phim
+                    </button>
+                </div>
+
+                <div class="card">
+                    <table id="movies-table" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên Phim</th>
+                                <th>Thể Loại</th>
+                                <th>Thời Lượng</th>
+                                <th>Giá Vé</th>
+                                <th>Khởi Chiếu</th>
+                                <th>Trạng Thái</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movies-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SUẤT CHIẾU -->
+            <section id="showings" class="section">
+                <div class="section-header">
+                    <h1>Suất Chiếu</h1>
+                    <button class="btn btn-primary" id="add-showing-btn">
+                        <i class="fas fa-plus"></i> Thêm Suất Chiếu
+                    </button>
+                </div>
+
+                <div class="card">
+                    <table id="showings-table" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Phim</th>
+                                <th>Rạp</th>
+                                <th>Phòng</th>
+                                <th>Ngày/Giờ</th>
+                                <th>Ghế Còn Lại</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="showings-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ĐƠN VÉ -->
+            <section id="bookings" class="section">
+                <div class="section-header">
+                    <h1>Quản Lý Đơn Vé</h1>
+                    <div class="filter-group">
+                        <select id="booking-status-filter">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="pending">Chờ xác nhận</option>
+                            <option value="confirmed">Đã xác nhận</option>
+                            <option value="completed">Hoàn thành</option>
+                            <option value="cancelled">Hủy</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <table id="bookings-table" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Khách Hàng</th>
+                                <th>Phim</th>
+                                <th>Suất Chiếu</th>
+                                <th>Ghế</th>
+                                <th>Tổng Tiền</th>
+                                <th>Ngày Đặt</th>
+                                <th>Trạng Thái</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookings-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- QUẢN LÝ NGƯỜI DÙNG -->
+            <section id="users" class="section">
+                <div class="section-header">
+                    <h1>Quản Lý Người Dùng</h1>
+                </div>
+
+                <div class="card">
+                    <table id="users-table" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên</th>
+                                <th>Email</th>
+                                <th>Số Điện Thoại</th>
+                                <th>Ngày Tạo</th>
+                                <th>Đơn Hàng</th>
+                                <th>Hành Động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- BÁO CÁO -->
+            <section id="reports" class="section">
+                <div class="section-header">
+                    <h1>Báo Cáo Thống Kê</h1>
+                </div>
+
+                <div class="report-filters">
+                    <select id="report-period">
+                        <option value="week">Tuần này</option>
+                        <option value="month">Tháng này</option>
+                        <option value="year">Năm này</option>
+                    </select>
+                    <button class="btn btn-secondary" id="export-report">
+                        <i class="fas fa-download"></i> Xuất Excel
+                    </button>
+                </div>
+
+                <div class="report-grid">
+                    <div class="card">
+                        <h2>Doanh Thu Theo Ngày</h2>
+                        <canvas id="revenue-chart"></canvas>
+                    </div>
+                    <div class="card">
+                        <h2>Phim Bán Chạy Nhất</h2>
+                        <canvas id="movies-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- MODAL THÊM/SỬA PHIM -->
+    <div id="movie-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="movie-modal-title">Thêm Phim</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="movie-form">
+                <div class="form-group">
+                    <label>Tên Phim *</label>
+                    <input type="text" id="movie-title" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Thể Loại *</label>
+                        <input type="text" id="movie-genre" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Thời Lượng (phút) *</label>
+                        <input type="number" id="movie-duration" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Giá Vé (VND) *</label>
+                        <input type="number" id="movie-price" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Khởi Chiếu *</label>
+                        <input type="date" id="movie-release-date" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Mô Tả</label>
+                    <textarea id="movie-description" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>URL Poster</label>
+                    <input type="url" id="movie-poster">
+                </div>
+                <div class="form-group">
+                    <label>Trạng Thái</label>
+                    <select id="movie-status">
+                        <option value="upcoming">Sắp Chiếu</option>
+                        <option value="showing">Đang Chiếu</option>
+                        <option value="ended">Kết Thúc</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close-btn">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL THÊM/SỬA SUẤT CHIẾU -->
+    <div id="showing-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Thêm Suất Chiếu</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <form id="showing-form">
+                <div class="form-group">
+                    <label>Chọn Phim *</label>
+                    <select id="showing-movie" required></select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phòng Chiếu *</label>
+                        <input type="text" id="showing-room" placeholder="VD: Phòng A1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Số Ghế *</label>
+                        <input type="number" id="showing-seats" value="100" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ngày Chiếu *</label>
+                        <input type="date" id="showing-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Giờ Chiếu *</label>
+                        <input type="time" id="showing-time" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close-btn">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Load các JavaScript modules -->
+    <script src="js/admin-db.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/movies.js"></script>
+    <script src="js/showings.js"></script>
+    <script src="js/bookings.js"></script>
+    <script src="js/users.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!-- BOOKINGS SECTION -->
+<section id="bookings" class="section">
+    <div class="section-header">
+        <h1>Quản Lý Đơn Vé</h1>
+        <select id="booking-status-filter" class="form-control">
+            <option value="">-- Tất Cả --</option>
+            <option value="pending">Chờ Xác Nhận</option>
+            <option value="confirmed">Đã Xác Nhận</option>
+            <option value="completed">Hoàn Thành</option>
+            <option value="cancelled">Hủy</option>
+        </select>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Khách</th>
+                    <th>Phim</th>
+                    <th>Suất Chiếu</th>
+                    <th>Ghế</th>
+                    <th>Tổng Tiền</th>
+                    <th>Ngày Đặt</th>
+                    <th>Trạng Thái</th>
+                    <th>Hành Động</th>
+                </tr>
+            </thead>
+            <tbody id="bookings-body">
+            </tbody>
+        </table>
+    </div>
+</section>

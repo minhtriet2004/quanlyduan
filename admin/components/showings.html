@@ -1,0 +1,67 @@
+<!-- SHOWINGS SECTION -->
+<section id="showings" class="section">
+    <div class="section-header">
+        <h1>Quản Lý Suất Chiếu</h1>
+        <button id="add-showing-btn" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Thêm Suất Chiếu
+        </button>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Tên Phim</th>
+                    <th>Phòng</th>
+                    <th>Số Ghế</th>
+                    <th>Ngày Giờ Chiếu</th>
+                    <th>Ghế Còn Trống</th>
+                    <th>Hành Động</th>
+                </tr>
+            </thead>
+            <tbody id="showings-body">
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- MODAL THÊM/SỬA SUẤT CHIẾU -->
+<div id="showing-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Thêm Suất Chiếu</h2>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form id="showing-form">
+            <div class="form-group">
+                <label>Chọn Phim *</label>
+                <select id="showing-movie" required></select>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Phòng Chiếu *</label>
+                    <input type="text" id="showing-room" placeholder="VD: Phòng A1" required>
+                </div>
+                <div class="form-group">
+                    <label>Số Ghế *</label>
+                    <input type="number" id="showing-seats" value="100" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ngày Chiếu *</label>
+                    <input type="date" id="showing-date" required>
+                </div>
+                <div class="form-group">
+                    <label>Giờ Chiếu *</label>
+                    <input type="time" id="showing-time" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-close-btn">Hủy</button>
+                <button type="submit" class="btn btn-primary">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
