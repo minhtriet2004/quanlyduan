@@ -3,153 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trang Chủ - Rạp Phim</title>
+    <title>Rạp Phim</title>
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
 
-    <!-- HEADER -->
-    <header>
-        <div class="logo">RẠP PHIM</div>
-        <nav>
-            <a href="#">Trang chủ</a>
-            <a href="#">Rạp phim</a>
-            <a href="#">Phim</a>
-            <a href="login.html" class="login-btn">Đăng nhập</a>
-        </nav>
-    </header>
+<!-- HEADER -->
+<header class="header">
+    <div class="logo">RẠP PHIM</div>
+    <nav>
+        <a class="active" href="#">Trang chủ</a>
+        <a href="#">Phim đang chiếu</a>
+        <a href="#">Phim sắp chiếu</a>
+        <a href="#">Rạp</a>
+        <a href="#" class="login-btn">Đăng nhập</a>
+    </nav>
+</header>
 
-    <!-- BODY -->
-    <div class="container">
+<!-- HERO -->
+<section class="hero">
+    <h1>Trải nghiệm điện ảnh đỉnh cao</h1>
+    <p>Đặt vé nhanh chóng, ưu đãi hấp dẫn</p>
+    <a href="#" class="hero-btn">Đặt vé ngay</a>
+</section>
 
-        <!-- PHIM ĐANG CHIẾU -->
-        <h2 class="section-title">Phim Đang Chiếu</h2>
-        <div class="movie-grid">
+<!-- BODY -->
+<div class="container">
 
-            <!-- 8 phim (4 × 2 hàng) -->
-            <div class="movie-card">
-                <img src="img/wicked.jpg" alt="">
-                <h3>WICKED: PHẦN 2</h3>
-                <p><b>Thể loại:</b> Nhạc kịch, Thần thoại</p>
-                <p><b>Thời lượng:</b> 138 phút</p>
-                <p><b>Khởi chiếu:</b> 21-11-2025</p>
-                <a href="movie-details.html?movie=wicked2" class="buy-btn">Mua vé</a>
-            </div>
+    <h2 class="section-title">Phim Đang Chiếu</h2>
+    <div class="movie-grid">
 
-            <div class="movie-card">
-                <img src="img/truytimlongdienhuong.jpg" alt="">
-                <h3>TRUY TÌM LONG DIÊN HƯƠNG</h3>
-                <p><b>Thể loại:</b> Hài</p>
-                <p><b>Thời lượng:</b> 103 phút</p>
-                <p><b>Khởi chiếu:</b> 14-11-2025</p>
-                <a href="movie-details.html?movie=longdienhuong" class="buy-btn">Mua vé</a>
-            </div>
-
-            <div class="movie-card">
-                <img src="img/anhtraisayxe.jpg" alt="">
-                <h3>ANH TRAI SAY XE</h3>
-                <p><b>Thể loại:</b> Hài</p>
-                <p><b>Thời lượng:</b> 110 phút</p>
-                <p><b>Khởi chiếu:</b> 21-11-2025</p>
-                <a href="movie-details.html?movie=anhtraisayxe" class="buy-btn">Mua vé</a>
-            </div>
-
-            <div class="movie-card">
-                <img src="img/gdragon.jpg" alt="">
-                <h3>G-DRAGON IN CINEMA</h3>
-                <p><b>Thể loại:</b> Tài liệu</p>
-                <p><b>Thời lượng:</b> 103 phút</p>
-                <p><b>Khởi chiếu:</b> 11-11-2025</p>
-                <a href="movie-details.html?movie=gdragon" class="buy-btn">Mua vé</a>
-            </div>
-
-            
+        <div class="movie-card">
+            <img src="img/wicked.jpg">
+            <h3>WICKED: PHẦN 2</h3>
+            <p>Thể loại: Nhạc kịch, Thần thoại</p>
+            <p>Thời lượng: 138 phút</p>
+            <p>Khởi chiếu: 21-11-2025</p>
+            <a class="buy-btn" href="#">Mua vé</a>
         </div>
 
-        <!-- PHIM SẮP CHIẾU -->
-        <h2 class="section-title">Phim Sắp Chiếu</h2>
-        <div class="movie-grid">
-            <!-- 8 phim (4 × 2 hàng) -->
-            <div class="movie-card">
-                <img src="img/wicked.jpg" alt="">
-                <h3>WICKED: PHẦN 2</h3>
-                <p><b>Thể loại:</b> Nhạc kịch, Thần thoại</p>
-                <p><b>Thời lượng:</b> 138 phút</p>
-                <p><b>Khởi chiếu:</b> 21-11-2025</p>
-                <a href="movie-details.html?movie=wicked2" class="buy-btn">Mua vé</a>
-            </div>
-
-            <div class="movie-card">
-                <img src="img/truytimlongdienhuong.jpg" alt="">
-                <h3>TRUY TÌM LONG DIÊN HƯƠNG</h3>
-                <p><b>Thể loại:</b> Hài</p>
-                <p><b>Thời lượng:</b> 103 phút</p>
-                <p><b>Khởi chiếu:</b> 14-11-2025</p>
-                <a href="movie-details.html?movie=longdienhuong" class="buy-btn">Mua vé</a>
-            </div>
-
-            <div class="movie-card">
-                <img src="img/anhtraisayxe.jpg" alt="">
-                <h3>ANH TRAI SAY XE</h3>
-                <p><b>Thể loại:</b> Hài</p>
-                <p><b>Thời lượng:</b> 110 phút</p>
-                <p><b>Khởi chiếu:</b> 21-11-2025</p>
-                <a href="movie-details.html?movie=anhtraisayxe" class="buy-btn">Mua vé</a>
-            </div>
-
-            <div class="movie-card">
-                <img src="img/gdragon.jpg" alt="">
-                <h3>G-DRAGON IN CINEMA</h3>
-                <p><b>Thể loại:</b> Tài liệu</p>
-                <p><b>Thời lượng:</b> 103 phút</p>
-                <p><b>Khởi chiếu:</b> 11-11-2025</p>
-                <a href="movie-details.html?movie=gdragon" class="buy-btn">Mua vé</a>
-            </div>
-
-            
-
+        <div class="movie-card">
+            <img src="img/truytimlongdienhuong.jpg">
+            <h3>TRUY TÌM LONG DIÊN HƯƠNG</h3>
+            <p>Thể loại: Hài</p>
+            <p>Thời lượng: 103 phút</p>
+            <p>Khởi chiếu: 14-11-2025</p>
+            <a class="buy-btn" href="#">Mua vé</a>
         </div>
 
+        <div class="movie-card">
+            <img src="img/anhtraisayxe.jpg">
+            <h3>ANH TRAI SAY XE</h3>
+            <p>Thể loại: Hài</p>
+            <p>Thời lượng: 110 phút</p>
+            <p>Khởi chiếu: 21-11-2025</p>
+            <a class="buy-btn" href="#">Mua vé</a>
+        </div>
+
+        <div class="movie-card">
+            <img src="img/gdragon.jpg">
+            <h3>G-DRAGON IN CINEMA</h3>
+            <p>Thể loại: Tài liệu</p>
+            <p>Thời lượng: 103 phút</p>
+            <p>Khởi chiếu: 11-11-2025</p>
+            <a class="buy-btn" href="#">Mua vé</a>
+        </div>
+    </div>
+    <h2 class="section-title">Phim Sắp Chiếu</h2>
+<div class="movie-grid">
+
+    <div class="movie-card">
+        <img src="img/wicked.jpg">
+        <h3>WICKED: PHẦN 2</h3>
+        <p>Thể loại: Nhạc kịch, Thần thoại</p>
+        <p>Thời lượng: 138 phút</p>
+        <p>Khởi chiếu: 21-11-2025</p>
+        <a class="buy-btn" href="#">Mua vé</a>
     </div>
 
-    <!-- FOOTER -->
-    <footer>
-        <div class="footer-row">
-            <div class="col">
-                <h4>CGV Việt Nam</h4>
-                <p>Giới Thiệu</p>
-                <p>Tiện Ích Online</p>
-                <p>Thẻ Quà Tặng</p>
-                <p>Tuyển Dụng</p>
-                <p>Liên Hệ Quảng Cáo</p>
-            </div>
-            <div class="col">
-                <h4>Điều khoản sử dụng</h4>
-                <p>Điều Khoản Chung</p>
-                <p>Điều Khoản Giao Dịch</p>
-                <p>Chính Sách Thanh Toán</p>
-                <p>Chính Sách Bảo Mật</p>
-                <p>Câu Hỏi Thường Gặp</p>
-            </div>
-            <div class="col">
-                <h4>Kết nối với chúng tôi</h4>
-                <p>Facebook</p>
-                <p>Youtube</p>
-                <p>Instagram</p>
-                <p>Zalo</p>
-            </div>
-            <div class="col">
-                <h4>Chăm sóc khách hàng</h4>
-                <p>Hotline: 1900 6017</p>
-                <p>Giờ làm việc: 8:00 - 22:00</p>
-                <p>Email hỗ trợ: hoidap@cgv.vn</p>
-            </div>
-        </div>
+    <div class="movie-card">
+        <img src="img/truytimlongdienhuong.jpg">
+        <h3>TRUY TÌM LONG DIÊN HƯƠNG</h3>
+        <p>Thể loại: Hài</p>
+        <p>Thời lượng: 103 phút</p>
+        <p>Khởi chiếu: 14-11-2025</p>
+        <a class="buy-btn" href="#">Mua vé</a>
+    </div>
 
-        <p class="copyright">
-            COPYRIGHT © 2025 RẠP PHIM. ALL RIGHTS RESERVED.
-        </p>
-    </footer>
+    <div class="movie-card">
+        <img src="img/anhtraisayxe.jpg">
+        <h3>ANH TRAI SAY XE</h3>
+        <p>Thể loại: Hài</p>
+        <p>Thời lượng: 110 phút</p>
+        <p>Khởi chiếu: 21-11-2025</p>
+        <a class="buy-btn" href="#">Mua vé</a>
+    </div>
+
+    <div class="movie-card">
+        <img src="img/gdragon.jpg">
+        <h3>G-DRAGON IN CINEMA</h3>
+        <p>Thể loại: Tài liệu</p>
+        <p>Thời lượng: 103 phút</p>
+        <p>Khởi chiếu: 11-11-2025</p>
+        <a class="buy-btn" href="#">Mua vé</a>
+    </div>
+
+</div>
+
+</div>
+
+<footer class="footer">
+    <p>© 2025 RẠP PHIM. ALL RIGHTS RESERVED.</p>
+</footer>
 
 </body>
 </html>

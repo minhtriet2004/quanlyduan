@@ -87,3 +87,97 @@ document.getElementById("clearBtn").addEventListener("click", () => {
     document.getElementById("count").innerText = "0";
     document.getElementById("total").innerText = "0";
 });
+
+// Smooth scrolling for navigation links
+document.querySelectorAll(".nav-link").forEach((link) => {
+  link.addEventListener("click", function (e) {
+    const href = this.getAttribute("href")
+    if (href.startsWith("#")) {
+      e.preventDefault()
+      const targetId = href.substring(1)
+      const targetElement = document.getElementById(targetId)
+
+      if (targetElement) {
+        targetElement.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        })
+      }
+    }
+
+    // Update active state
+    document.querySelectorAll(".nav-link").forEach((navLink) => {
+      navLink.classList.remove("active")
+    })
+    this.classList.add("active")
+  })
+})
+
+// Buy button click handler
+document.querySelectorAll(".btn-buy").forEach((button) => {
+  button.addEventListener("click", function (e) {
+    e.stopPropagation()
+    const movieCard = this.closest(".movie-card")
+    const movieTitle = movieCard.querySelector(".movie-title").textContent
+    alert(`Đang chuyển đến trang đặt vé cho phim: ${movieTitle}`)
+  })
+})
+
+// Movie card click handler
+document.querySelectorAll(".movie-card").forEach((card) => {
+  card.addEventListener("click", function () {
+    const movieTitle = this.querySelector(".movie-title").textContent
+    alert(`Chi tiết phim: ${movieTitle}`)
+  })
+})
+
+// Login button handler
+document.querySelector(".btn-login").addEventListener("click", () => {
+  alert("Chức năng đăng nhập đang được phát triển")
+})
+
+// Hero button handler
+document.querySelector(".btn-hero").addEventListener("click", () => {
+  const nowShowingSection = document.getElementById("now-showing")
+  if (nowShowingSection) {
+    nowShowingSection.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    })
+  }
+})
+
+// Intersection Observer for fade-in animation
+const observerOptions = {
+  threshold: 0.1,
+  rootMargin: "0px 0px -50px 0px",
+}
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = "1"
+      entry.target.style.transform = "translateY(0)"
+    }
+  })
+}, observerOptions)
+
+// Apply animation to movie cards
+document.querySelectorAll(".movie-card").forEach((card, index) => {
+  card.style.opacity = "0"
+  card.style.transform = "translateY(20px)"
+  card.style.transition = `opacity 0.6s ease-out ${index * 0.1}s, transform 0.6s ease-out ${index * 0.1}s`
+  observer.observe(card)
+})
+
+// Mobile menu toggle (for future enhancement)
+window.addEventListener("resize", () => {
+  if (window.innerWidth < 768) {
+    console.log("[v0] Mobile view detected")
+  }
+})
+
+// Scroll to top on page load
+window.addEventListener("load", () => {
+  window.scrollTo(0, 0)
+})
