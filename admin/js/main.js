@@ -9,16 +9,16 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function checkAdminLogin() {
-    const adminSession = localStorage.getItem('adminSession');
+    const adminSession = Storage.getAdmin();
     if (!adminSession) {
         window.location.href = 'login.html';
         return;
     }
 
-    currentAdmin = JSON.parse(adminSession);
+    currentAdmin = adminSession;
     const adminNameEl = document.getElementById('admin-name');
     if (adminNameEl) {
-        adminNameEl.textContent = currentAdmin.name;
+        adminNameEl.textContent = currentAdmin.full_name || currentAdmin.username;
     }
 }
 
@@ -104,7 +104,7 @@ function switchSection(sectionId) {
 // ===== LOGOUT =====
 function logout() {
     if (confirm('Bạn chắc chắn muốn đăng xuất?')) {
-        localStorage.removeItem('adminSession');
-        window.location.href = '../index.html';
+        Storage.clear();
+        window.location.href = 'login.html';
     }
 }

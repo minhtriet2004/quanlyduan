@@ -1,0 +1,188 @@
+// ===== API CLIENT =====
+// Detect API base URL - works with or without /quanlyduan in path
+const API_BASE_URL = (() => {
+    const currentPath = window.location.pathname;
+    // If /quanlyduan is in the path, use /quanlyduan/api
+    if (currentPath.includes('/quanlyduan/')) {
+        return '/quanlyduan/api';
+    }
+    // Otherwise use /api (for direct localhost access)
+    return '/api';
+})();
+
+class APIClient {
+    // Auth endpoints
+    static async register(data) {
+        return this.post('auth.php', { ...data, action: 'register' });
+    }
+
+    static async login(data) {
+        return this.post('auth.php', { ...data, action: 'login' });
+    }
+
+    static async adminLogin(data) {
+        return this.post('auth.php', { ...data, action: 'admin_login' });
+    }
+
+    // Movies endpoints
+    static async getMovies(status = 'showing', limit = 100, offset = 0) {
+        return this.get(`movies.php?status=${status}&limit=${limit}&offset=${offset}`);
+    }
+
+    static async getMovieById(id) {
+        return this.get(`movies.php?id=${id}`);
+    }
+
+    static async addMovie(data) {
+        return this.post('movies.php', { ...data, action: 'add' });
+    }
+
+    static async updateMovie(data) {
+        return this.post('movies.php', { ...data, action: 'update' });
+    }
+
+    static async deleteMovie(id) {
+        return this.post('movies.php', { id, action: 'delete' });
+    }
+
+    // Showings endpoints
+    static async getShowings(movieId = null, showingDate = null) {
+        let url = 'showings.php?';
+        if (movieId) url += `movie_id=${movieId}&`;
+        if (showingDate) url += `showing_date=${showingDate}&`;
+        return this.get(url);
+    }
+
+    static async addShowing(data) {
+        return this.post('showings.php', { ...data, action: 'add' });
+    }
+
+    static async updateShowing(data) {
+        return this.post('showings.php', { ...data, action: 'update' });
+    }
+
+    static async deleteShowing(id) {
+        return this.post('showings.php', { id, action: 'delete' });
+    }
+
+    // Bookings endpoints
+    static async getBookings(userId = null, status = null) {
+        let url = 'bookings.php?';
+        if (userId) url += `user_id=${userId}&`;
+        if (status) url += `status=${status}&`;
+        return this.get(url);
+    }
+
+    static async createBooking(data) {
+        return this.post('bookings.php', { ...data, action: 'create' });
+    }
+
+    static async cancelBooking(bookingId) {
+        return this.post('bookings.php', { booking_id: bookingId, action: 'cancel' });
+    }
+
+    // Seats endpoints
+    static async getSeats(showingId) {
+        return this.get(`seats.php?showing_id=${showingId}`);
+    }
+
+    // Helper methods
+    static async get(endpoint) {
+        try {
+            console.log('API GET:', `${API_BASE_URL}/${endpoint}`);
+            const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            console.log('API Response Status:', response.status);
+            
+            const text = await response.text();
+            console.log('API Raw Response:', text);
+            
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error('Failed to parse JSON response:', e);
+                return { success: false, message: 'Invalid server response: ' + text.substring(0, 100) };
+            }
+            
+            console.log('API Response:', data);
+            return data;
+        } catch (error) {
+            console.error('API GET Error:', error);
+            return { success: false, message: 'Network error: ' + error.message };
+        }
+    }
+
+    static async post(endpoint, data) {
+        try {
+            console.log('API POST:', `${API_BASE_URL}/${endpoint}`, data);
+            const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            
+            console.log('API Response Status:', response.status);
+            
+            const text = await response.text();
+            console.log('API Raw Response:', text);
+            
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (e) {
+                console.error('Failed to parse JSON response:', e);
+                return { success: false, message: 'Invalid server response: ' + text.substring(0, 100) };
+            }
+            
+            console.log('API Response:', result);
+            return result;
+        } catch (error) {
+            console.error('API POST Error:', error);
+            return { success: false, message: 'Network error: ' + error.message };
+        }
+    }
+}
+
+// Storage helpers
+class Storage {
+    static setUser(user) {
+        localStorage.setItem('user', JSON.stringify(user));
+    }
+
+    static getUser() {
+        const user = localStorage.getItem('user');
+        return user ? JSON.parse(user) : null;
+    }
+
+    static setAdmin(admin) {
+        localStorage.setItem('admin', JSON.stringify(admin));
+    }
+
+    static getAdmin() {
+        const admin = localStorage.getItem('admin');
+        return admin ? JSON.parse(admin) : null;
+    }
+
+    static setToken(token) {
+        localStorage.setItem('token', token);
+    }
+
+    static getToken() {
+        return localStorage.getItem('token');
+    }
+
+    static clear() {
+        localStorage.removeItem('user');
+        localStorage.removeItem('admin');
+        localStorage.removeItem('token');
+        localStorage.removeItem('adminSession');
+    }
+}

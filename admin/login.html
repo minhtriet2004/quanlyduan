@@ -175,8 +175,8 @@
             <div class="error-message" id="error-message"></div>
             <form id="login-form">
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" required placeholder="admin@cinema.vn">
+                    <label for="email">Username</label>
+                    <input type="text" id="email" required placeholder="Vui lòng nhập admin name hoặc email">
                 </div>
                 <div class="form-group">
                     <label for="password">Mật khẩu</label>
@@ -193,51 +193,50 @@
         </div>
     </div>
 
+    <script src="../js/api-client.js"></script>
     <script>
         const form = document.getElementById('login-form');
         const errorMessage = document.getElementById('error-message');
 
         // Check if already logged in
         window.addEventListener('DOMContentLoaded', () => {
-            const adminSession = localStorage.getItem('adminSession');
+            const adminSession = localStorage.getItem('admin');
             if (adminSession) {
                 window.location.href = 'index.html';
             }
         });
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const email = document.getElementById('email').value.trim();
+            const username = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const remember = document.getElementById('remember').checked;
 
-            // Get admin database
-            const db = JSON.parse(localStorage.getItem('adminDB'));
-            
-            // Find admin
-            const admin = db.admins.find(a => a.email === email && a.password === password);
+            // Validate
+            if (!username || !password) {
+                errorMessage.textContent = 'Vui lòng nhập username và password!';
+                errorMessage.style.display = 'block';
+                return;
+            }
 
-            if (admin) {
-                // Create session
-                const session = {
-                    id: admin.id,
-                    name: admin.name,
-                    email: admin.email,
-                    role: admin.role
-                };
+            // Call API for admin login
+            const response = await APIClient.adminLogin({ username, password });
 
-                localStorage.setItem('adminSession', JSON.stringify(session));
+            if (response.success) {
+                // Store admin session
+                Storage.setAdmin(response.data.user);
+                Storage.setToken(response.data.token);
 
                 // Store credentials if remember me is checked
                 if (remember) {
-                    localStorage.setItem('adminEmail', email);
+                    localStorage.setItem('adminEmail', username);
                 }
 
                 // Redirect to dashboard
                 window.location.href = 'index.html';
             } else {
-                errorMessage.textContent = 'Email hoặc mật khẩu không đúng!';
+                errorMessage.textContent = response.message || 'Đăng nhập thất bại!';
                 errorMessage.style.display = 'block';
                 document.getElementById('password').value = '';
             }

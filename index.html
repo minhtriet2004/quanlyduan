@@ -230,5 +230,25 @@
             </div>
         </div>
     </footer>
+
+    <script src="/js/api-client.js"></script>
+    <script src="/js/index.js"></script>
+    <script>
+        // Load movies when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            loadMoviesFromAPI();
+        });
+
+        function bookTicket(movieId, movieTitle) {
+            const user = Storage.getUser();
+            if (!user) {
+                alert('Vui lòng đăng nhập để đặt vé!');
+                window.location.href = 'login.html';
+                return;
+            }
+            // TODO: Redirect to booking page
+            alert('Đặt vé cho: ' + movieTitle + '\n(Tính năng sắp ra mắt)');
+        }
+    </script>
 </body>
 </html>
