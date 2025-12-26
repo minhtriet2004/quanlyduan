@@ -19,7 +19,19 @@
                     <a href="rap.html" class="nav-link">Rạp</a>
                     <a href="#" class="nav-link">Khuyến mãi</a>
                 </nav>
-                <button class="btn-login" onclick="window.location.href = 'login.html'">Đăng nhập</button>
+                <button class="btn-login" id="auth-btn" onclick="handleAuthClick()">Đăng nhập</button>
+                <div class="profile-menu" id="profile-menu" style="display: none;">
+                    <div class="profile-header">
+                        <div class="profile-avatar">👤</div>
+                        <div class="profile-info">
+                            <p class="profile-name" id="profile-name"></p>
+                            <p class="profile-email" id="profile-email"></p>
+                        </div>
+                    </div>
+                    <a href="#" class="profile-link" onclick="goToProfile(event)">Hồ sơ cá nhân</a>
+                    <a href="#" class="profile-link" onclick="goToBookings(event)">Lịch sử đặt vé</a>
+                    <a href="#" class="profile-link" onclick="handleLogout(event)">Đăng xuất</a>
+                </div>
             </div>
         </div>
     </header>
@@ -102,6 +114,61 @@
         // Load movies when page loads
         window.addEventListener('DOMContentLoaded', () => {
             loadMoviesFromAPI();
+            updateAuthUI();
+        });
+
+        function updateAuthUI() {
+            const user = Storage.getUser();
+            const authBtn = document.getElementById('auth-btn');
+            const profileMenu = document.getElementById('profile-menu');
+            
+            if (user) {
+                authBtn.style.display = 'none';
+                profileMenu.style.display = 'block';
+                document.getElementById('profile-name').textContent = user.username || user.name || 'User';
+                document.getElementById('profile-email').textContent = user.email || '';
+            } else {
+                authBtn.style.display = 'block';
+                profileMenu.style.display = 'none';
+            }
+        }
+
+        function handleAuthClick() {
+            window.location.href = 'login.html';
+        }
+
+        function goToProfile(event) {
+            event.preventDefault();
+            alert('Tính năng hồ sơ cá nhân sắp ra mắt');
+        }
+
+        function goToBookings(event) {
+            event.preventDefault();
+            alert('Tính năng lịch sử đặt vé sắp ra mắt');
+        }
+
+        function handleLogout(event) {
+            event.preventDefault();
+            Storage.clear();
+            updateAuthUI();
+            alert('Đã đăng xuất');
+        }
+
+        // Toggle profile menu on click
+        document.getElementById('auth-btn').addEventListener('click', function() {
+            const menu = document.getElementById('profile-menu');
+            if (menu.style.display === 'block') {
+                menu.style.display = 'none';
+            }
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const authBtn = document.getElementById('auth-btn');
+            const profileMenu = document.getElementById('profile-menu');
+            if (!event.target.closest('.btn-login') && !event.target.closest('.profile-menu')) {
+                profileMenu.style.display = 'none';
+            }
         });
     </script>
 </body>
