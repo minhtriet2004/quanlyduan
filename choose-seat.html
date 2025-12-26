@@ -5,19 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Choose Seat Movie</title>
     <link rel="stylesheet" href="css/choose-seat.css">
-
+    <link rel="stylesheet" href="/css/notification.css">
 </head>
 <body>
     <div class="movie-container">
         <label>Bạn đang đặt vé cho phim:</label>
         <h2 id="movieName" style="color:white; margin-top:5px;"></h2>
-
+        <p id="ticketQuantity" style="color:#00b7ff; margin-top:10px; font-size:16px;"></p>
 
         
         <ul class="showcase">
             <li>
                 <div class="seat"></div>
-                <small>N/A</small>
+                <small>Có sẵn</small>
             </li>
             <li>
                 <div class="seat selected"></div>
@@ -110,7 +110,7 @@
         </div>
     </div>
     <p class="text">
-        Bạn đã chọn <span id="count">0</span> chỗ
+        Bạn đã chọn <span id="count">0</span> / <span id="maxCount">0</span> chỗ
     </p>
     <div class="action-buttons" style="margin-top: 20px; display: flex; gap: 20px; justify-content: center;">
     
@@ -129,3 +129,166 @@
     </div>
 </body>
 </html>
+
+<script src="/js/api-client.js"></script>
+<script src="/js/bookings-client.js"></script>
+<script src="/js/storage.js"></script>
+<script src="/js/notification.js"></script>
+<script>
+    let selectedSeats = [];
+    let movieId = null;
+    let showingId = null;
+    let currentMovie = null;
+    let requiredQuantity = 0;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadMovieInfo();
+        setupSeatSelection();
+        setupButtons();
+    });
+
+    async function loadMovieInfo() {
+        const params = new URLSearchParams(window.location.search);
+        movieId = params.get('id');
+
+        if (!movieId) {
+            Notification.error('Không tìm thấy phim');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+            return;
+        }
+
+        // Get booking info from session storage
+        const bookingInfo = JSON.parse(sessionStorage.getItem('bookingInfo') || '{}');
+        requiredQuantity = parseInt(bookingInfo.quantity) || 0;
+
+        if (requiredQuantity === 0) {
+            Notification.error('Không tìm thấy thông tin số lượng vé');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+            return;
+        }
+
+        try {
+            const response = await APIClient.getMovieById(movieId);
+            if (response && response.success) {
+                currentMovie = response.data.movie;
+                document.getElementById('movieName').textContent = currentMovie.title || 'Không xác định';
+                document.getElementById('ticketQuantity').textContent = `Bạn cần chọn ${requiredQuantity} ghế`;
+                document.getElementById('maxCount').textContent = requiredQuantity;
+            } else {
+                Notification.error('Không thể tải thông tin phim');
+                setTimeout(() => window.location.href = 'index.html', 1500);
+            }
+        } catch (error) {
+            console.error('Error loading movie:', error);
+            Notification.error('Lỗi khi tải thông tin phim');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+        }
+    }
+
+    function setupSeatSelection() {
+        const seats = document.querySelectorAll('.row .seat:not(.occupied)');
+        seats.forEach(seat => {
+            seat.addEventListener('click', function() {
+                // Nếu ghế đã được chọn thì bỏ chọn
+                if (this.classList.contains('selected')) {
+                    this.classList.remove('selected');
+                    updateSelectedSeats();
+                    return;
+                }
+
+                // Nếu đã chọn đủ số lượng yêu cầu thì không cho chọn thêm
+                if (selectedSeats.length >= requiredQuantity) {
+                    Notification.warning(`Bạn chỉ có thể chọn tối đa ${requiredQuantity} ghế`);
+                    return;
+                }
+
+                // Chọn ghế
+                this.classList.add('selected');
+                updateSelectedSeats();
+            });
+        });
+    }
+
+    function updateSelectedSeats() {
+        selectedSeats = [];
+        document.querySelectorAll('.row .seat.selected').forEach(seat => {
+            selectedSeats.push(seat);
+        });
+        document.getElementById('count').textContent = selectedSeats.length;
+
+        // Enable/disable confirm button based on selection
+        const confirmBtn = document.getElementById('confirmBtn');
+        if (selectedSeats.length === requiredQuantity) {
+            confirmBtn.style.opacity = '1';
+            confirmBtn.style.cursor = 'pointer';
+            confirmBtn.disabled = false;
+        } else {
+            confirmBtn.style.opacity = '0.6';
+            confirmBtn.style.cursor = 'not-allowed';
+            confirmBtn.disabled = true;
+        }
+    }
+
+    function setupButtons() {
+        document.getElementById('confirmBtn').addEventListener('click', confirmBooking);
+        document.getElementById('clearBtn').addEventListener('click', clearSelection);
+        
+        // Disable confirm button initially
+        document.getElementById('confirmBtn').disabled = true;
+        document.getElementById('confirmBtn').style.opacity = '0.6';
+        document.getElementById('confirmBtn').style.cursor = 'not-allowed';
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.seat.selected').forEach(seat => {
+            seat.classList.remove('selected');
+        });
+        updateSelectedSeats();
+    }
+
+    async function confirmBooking() {
+        const user = Storage.getUser();
+        if (!user) {
+            Notification.error('Vui lòng đăng nhập để đặt vé');
+            setTimeout(() => window.location.href = 'login.html', 1500);
+            return;
+        }
+
+        if (selectedSeats.length !== requiredQuantity) {
+            Notification.error(`Vui lòng chọn đúng ${requiredQuantity} ghế`);
+            return;
+        }
+
+        if (!currentMovie) {
+            Notification.error('Không tìm thấy thông tin phim');
+            return;
+        }
+
+        // Get booking info from session storage
+        const bookingInfo = JSON.parse(sessionStorage.getItem('bookingInfo') || '{}');
+        
+        // Create booking
+        try {
+            const response = await BookingsClient.createBooking({
+                user_id: user.id,
+                movie_id: movieId,
+                showing_id: 1, // Default showing ID - can be updated based on your needs
+                seats: selectedSeats.map((_, index) => index + 1), // Seat IDs
+                payment_method: 'cash'
+            });
+
+            if (response.success) {
+                Notification.success('Đặt vé thành công! Mã đặt vé: #' + response.data.booking_id);
+                setTimeout(() => {
+                    sessionStorage.removeItem('bookingInfo');
+                    window.location.href = 'bookings-history.html';
+                }, 1500);
+            } else {
+                Notification.error(response.message || 'Lỗi khi đặt vé');
+            }
+        } catch (error) {
+            console.error('Error creating booking:', error);
+            Notification.error('Lỗi khi đặt vé');
+        }
+    }
+</script>

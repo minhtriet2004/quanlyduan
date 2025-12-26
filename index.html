@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RAP PHIM - Đặt vé xem phim online</title>
     <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/notification.css">
 </head>
 <body>
     <!-- Header -->
@@ -28,8 +29,7 @@
                             <p class="profile-email" id="profile-email"></p>
                         </div>
                     </div>
-                    <a href="#" class="profile-link" onclick="goToProfile(event)">Hồ sơ cá nhân</a>
-                    <a href="#" class="profile-link" onclick="goToBookings(event)">Lịch sử đặt vé</a>
+                    <a href="bookings-history.html" class="profile-link">Lịch sử đặt vé</a>
                     <a href="#" class="profile-link" onclick="handleLogout(event)">Đăng xuất</a>
                 </div>
             </div>
@@ -110,6 +110,7 @@
     <script src="/js/api-client.js"></script>
     <script src="/js/storage.js"></script>
     <script src="/js/index.js"></script>
+    <script src="/js/notification.js"></script>
     <script>
         // Load movies when page loads
         window.addEventListener('DOMContentLoaded', () => {
@@ -137,21 +138,11 @@
             window.location.href = 'login.html';
         }
 
-        function goToProfile(event) {
-            event.preventDefault();
-            alert('Tính năng hồ sơ cá nhân sắp ra mắt');
-        }
-
-        function goToBookings(event) {
-            event.preventDefault();
-            alert('Tính năng lịch sử đặt vé sắp ra mắt');
-        }
-
         function handleLogout(event) {
             event.preventDefault();
             Storage.clear();
             updateAuthUI();
-            alert('Đã đăng xuất');
+            window.location.href = 'index.html';
         }
 
         // Toggle profile menu on click

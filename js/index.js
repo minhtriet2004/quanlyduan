@@ -84,8 +84,8 @@ function bookTicket(movieId, movieTitle) {
     // Check if user is logged in
     const user = Storage.getUser();
     if (!user) {
-        alert('Vui lòng đăng nhập để mua vé!');
-        window.location.href = 'login.html';
+        Notification.error('Vui lòng đăng nhập để mua vé!');
+        setTimeout(() => window.location.href = 'login.html', 1500);
         return;
     }
 

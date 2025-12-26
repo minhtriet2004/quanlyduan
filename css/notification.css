@@ -1,0 +1,218 @@
+/* Custom Notification Styles */
+.custom-notification {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0;
+    z-index: 9999;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    min-width: 300px;
+    max-width: 500px;
+}
+
+.custom-notification.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+}
+
+.notification-icon {
+    font-size: 24px;
+    font-weight: bold;
+    min-width: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-message {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.notification-close:hover {
+    opacity: 1;
+}
+
+/* Success */
+.notification-success {
+    background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+    color: white;
+}
+
+.notification-success .notification-icon {
+    color: #fff;
+}
+
+.notification-success .notification-close {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Error */
+.notification-error {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+}
+
+.notification-error .notification-icon {
+    color: #fff;
+}
+
+.notification-error .notification-close {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Warning */
+.notification-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    color: white;
+}
+
+.notification-warning .notification-icon {
+    color: #fff;
+}
+
+.notification-warning .notification-close {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Info */
+.notification-info {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+}
+
+.notification-info .notification-icon {
+    color: #fff;
+}
+
+.notification-info .notification-close {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Modal Confirm */
+.notification-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9998;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.notification-modal-content {
+    background: linear-gradient(135deg, #1a1f3a 0%, #141a2f 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    min-width: 300px;
+    max-width: 400px;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.notification-modal-message {
+    font-size: 16px;
+    margin-bottom: 20px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.notification-modal-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.notification-modal-buttons button {
+    flex: 1;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.notification-modal-buttons .btn-cancel {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.notification-modal-buttons .btn-cancel:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.notification-modal-buttons .btn-confirm {
+    background-color: #e50914;
+    color: white;
+}
+
+.notification-modal-buttons .btn-confirm:hover {
+    background-color: #f40612;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .custom-notification {
+        min-width: 280px;
+        max-width: calc(100% - 20px);
+    }
+
+    .notification-modal-content {
+        min-width: 280px;
+        max-width: calc(100% - 20px);
+    }
+}

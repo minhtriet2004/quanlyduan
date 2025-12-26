@@ -54,6 +54,8 @@ async function loadMovies() {
 function openMovieModal() {
     document.getElementById('movie-modal-title').textContent = 'Thêm Phim';
     document.getElementById('movie-form').reset();
+    document.getElementById('poster-preview').innerHTML = '';
+    document.getElementById('movie-poster').value = '';
     document.getElementById('movie-modal').style.display = 'block';
     document.getElementById('movie-form').dataset.movieId = '';
 }
@@ -76,6 +78,13 @@ async function editMovie(id) {
         document.getElementById('movie-description').value = movie.description || '';
         document.getElementById('movie-poster').value = movie.poster_image || '';
         document.getElementById('movie-status').value = movie.status || 'showing';
+        
+        // Show existing poster preview
+        if (movie.poster_image) {
+            const preview = document.getElementById('poster-preview');
+            preview.innerHTML = `<img src="${movie.poster_image}" alt="Preview">`;
+        }
+        
         document.getElementById('movie-form').dataset.movieId = id;
         document.getElementById('movie-modal').style.display = 'block';
     } catch (error) {
@@ -87,13 +96,41 @@ async function saveMovie(e) {
     e.preventDefault();
 
     const movieId = document.getElementById('movie-form').dataset.movieId;
+    let posterImage = document.getElementById('movie-poster').value;
+    
+    // Handle file upload if a new file is selected
+    const fileInput = document.getElementById('movie-poster-file');
+    if (fileInput.files.length > 0) {
+        try {
+            const formData = new FormData();
+            formData.append('image', fileInput.files[0]);
+            
+            const uploadResponse = await fetch('/api/upload.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const uploadData = await uploadResponse.json();
+            if (uploadData.success) {
+                posterImage = uploadData.data.path;
+            } else {
+                showNotification('Lỗi upload hình: ' + uploadData.message, 'error');
+                return;
+            }
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            showNotification('Lỗi khi upload hình!', 'error');
+            return;
+        }
+    }
+
     const movieData = {
         title: document.getElementById('movie-title').value,
         genre: document.getElementById('movie-genre').value,
         duration: parseInt(document.getElementById('movie-duration').value),
         release_date: document.getElementById('movie-release-date').value,
         description: document.getElementById('movie-description').value,
-        poster_image: document.getElementById('movie-poster').value,
+        poster_image: posterImage,
         status: document.getElementById('movie-status').value
     };
 
@@ -141,4 +178,19 @@ async function deleteMovieConfirm(id) {
             showNotification('Lỗi khi xóa phim!', 'error');
         }
     }
+}
+
+// Handle poster file input change
+if (document.getElementById('movie-poster-file')) {
+    document.getElementById('movie-poster-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const preview = document.getElementById('poster-preview');
+                preview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 }

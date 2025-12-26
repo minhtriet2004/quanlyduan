@@ -6,6 +6,20 @@ $input = getJsonInput();
 
 // Get all movies - auto-determine status based on release_date
 if ($method === 'GET') {
+    // Check if getting single movie by ID
+    if (isset($_GET['id'])) {
+        $id = intval($_GET['id']);
+        $query = "SELECT * FROM movies WHERE id = $id";
+        $result = $conn->query($query);
+
+        if ($result->num_rows === 0) {
+            sendResponse(false, 'Movie not found', null, 404);
+        }
+
+        $movie = $result->fetch_assoc();
+        sendResponse(true, 'Movie retrieved successfully', ['movie' => $movie]);
+    }
+    
     // Get all movies (both showing and coming_soon)
     $limit = $_GET['limit'] ?? 100;
     $offset = $_GET['offset'] ?? 0;
@@ -33,20 +47,6 @@ if ($method === 'GET') {
     }
 
     sendResponse(true, 'Movies retrieved successfully', ['movies' => $movies]);
-}
-
-// Get single movie
-else if ($method === 'GET' && isset($_GET['id'])) {
-    $id = intval($_GET['id']);
-    $query = "SELECT * FROM movies WHERE id = $id";
-    $result = $conn->query($query);
-
-    if ($result->num_rows === 0) {
-        sendResponse(false, 'Movie not found', null, 404);
-    }
-
-    $movie = $result->fetch_assoc();
-    sendResponse(true, 'Movie retrieved successfully', ['movie' => $movie]);
 }
 
 // Add movie (Admin)

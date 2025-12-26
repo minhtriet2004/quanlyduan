@@ -14,7 +14,21 @@ body {
 .container {
     padding: 60px;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+
+.back-link {
+    align-self: flex-start;
+    color: #ff1f1f;
+    text-decoration: none;
+    font-size: 16px;
+    margin-bottom: 20px;
+    transition: color 0.3s ease;
+}
+
+.back-link:hover {
+    color: #ffb3b3;
 }
 
 /* ===== CARD ===== */
@@ -34,7 +48,7 @@ body {
     height: 420px;
     background: #000;
     border-radius: 14px;
-    object-fit: contain;     /* KHÔNG CẮT ẢNH */
+    object-fit: cover;
 }
 
 /* ===== INFO ===== */

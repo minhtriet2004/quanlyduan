@@ -5,18 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thông Tin Phim</title>
     <link rel="stylesheet" href="/css/movie-details.css">
+    <link rel="stylesheet" href="/css/notification.css">
 </head>
 <body>
 
 <div class="container">
+    <a href="index.html" class="back-link">← Quay lại</a>
 
     <div class="movie-info">
-        <img id="poster">
+        <img id="poster" alt="Poster">
         <div>
             <h2 id="title"></h2>
             <p><b>Thể loại:</b> <span id="genre"></span></p>
             <p><b>Thời lượng:</b> <span id="duration"></span> phút</p>
             <p><b>Khởi chiếu:</b> <span id="release"></span></p>
+            <p><b>Mô tả:</b> <span id="description"></span></p>
 
             <label>Chọn số lượng vé:</label><br>
             <select id="quantity">
@@ -28,13 +31,110 @@
             </select>
             <br><br>
             
-            <p><b>Tổng tiền:</b> <span id="totalPrice"></span></p>
+            <p><b>Tổng tiền:</b> <span id="totalPrice"></span> VND</p>
 
             <br><br>
-            <button onclick="nextStep()">Tiếp tục</button>
+            <button onclick="goToChooseSeat()">Đặt vé</button>
         </div>
     </div>
 </div>
 
+<script src="/js/api-client.js"></script>
+<script src="/js/storage.js"></script>
+<script src="/js/notification.js"></script>
+<script>
+    let currentMovie = null;
+    let ticketPrice = 0;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadMovieDetails();
+        setupQuantityListener();
+    });
+
+    async function loadMovieDetails() {
+        const params = new URLSearchParams(window.location.search);
+        const movieId = params.get('id');
+
+        if (!movieId) {
+            Notification.error('Không tìm thấy phim (ID không tồn tại)');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+            return;
+        }
+
+        try {
+            const response = await APIClient.getMovieById(movieId);
+            if (response && response.success) {
+                currentMovie = response.data.movie;
+                displayMovieInfo();
+            } else {
+                const errorMsg = response?.message || 'Không thể tải thông tin phim';
+                console.error('API Error:', response);
+                Notification.error('Lỗi: ' + errorMsg);
+                setTimeout(() => window.location.href = 'index.html', 1500);
+            }
+        } catch (error) {
+            console.error('Error loading movie:', error);
+            Notification.error('Lỗi khi tải thông tin phim: ' + error.message);
+            setTimeout(() => window.location.href = 'index.html', 1500);
+        }
+    }
+
+    function displayMovieInfo() {
+        if (!currentMovie) return;
+
+        document.getElementById('poster').src = currentMovie.poster_image || '/img/default-poster.jpg';
+        document.getElementById('title').textContent = currentMovie.title;
+        document.getElementById('genre').textContent = currentMovie.genre || 'N/A';
+        document.getElementById('duration').textContent = currentMovie.duration || 'N/A';
+        document.getElementById('description').textContent = currentMovie.description || 'Chưa có mô tả';
+        
+        const releaseDate = new Date(currentMovie.release_date);
+        const day = String(releaseDate.getDate()).padStart(2, '0');
+        const month = String(releaseDate.getMonth() + 1).padStart(2, '0');
+        const year = releaseDate.getFullYear();
+        document.getElementById('release').textContent = `${day}-${month}-${year}`;
+
+        // Get ticket price from showing or use default
+        ticketPrice = currentMovie.price || 12000;
+        updateTotalPrice();
+    }
+
+    function setupQuantityListener() {
+        document.getElementById('quantity').addEventListener('change', updateTotalPrice);
+    }
+
+    function updateTotalPrice() {
+        const quantity = parseInt(document.getElementById('quantity').value);
+        const total = quantity * ticketPrice;
+        document.getElementById('totalPrice').textContent = total.toLocaleString('vi-VN');
+    }
+
+    function goToChooseSeat() {
+        const user = Storage.getUser();
+        if (!user) {
+            Notification.error('Vui lòng đăng nhập để đặt vé');
+            setTimeout(() => window.location.href = 'login.html', 1500);
+            return;
+        }
+
+        if (!currentMovie) {
+            Notification.error('Không tìm thấy thông tin phim');
+            return;
+        }
+
+        const quantity = document.getElementById('quantity').value;
+        // Store booking info in session storage
+        sessionStorage.setItem('bookingInfo', JSON.stringify({
+            movieId: currentMovie.id,
+            movieTitle: currentMovie.title,
+            quantity: quantity,
+            totalPrice: parseInt(document.getElementById('quantity').value) * ticketPrice
+        }));
+
+        window.location.href = `choose-seat.html?id=${currentMovie.id}`;
+    }
+</script>
+
 </body>
 </html>
+

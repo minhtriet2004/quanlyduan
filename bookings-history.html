@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử đặt vé - RAP PHIM</title>
+    <link rel="stylesheet" href="/css/bookings-history.css">
+    <link rel="stylesheet" href="/css/notification.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo" onclick="window.location.href = 'index.html'" style="cursor: pointer;">RAP PHIM</div>
+                <nav class="nav">
+                    <a href="index.html" class="nav-link">Trang chủ</a>
+                </nav>
+                <button class="btn-login" id="auth-btn" onclick="handleAuthClick()">Đăng nhập</button>
+                <div class="profile-menu" id="profile-menu" style="display: none;">
+                    <div class="profile-header">
+                        <div class="profile-avatar">👤</div>
+                        <div class="profile-info">
+                            <p class="profile-name" id="profile-name"></p>
+                            <p class="profile-email" id="profile-email"></p>
+                        </div>
+                    </div>
+                    <a href="bookings-history.html" class="profile-link">Lịch sử đặt vé</a>
+                    <a href="#" class="profile-link" onclick="handleLogout(event)">Đăng xuất</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="bookings-container">
+                <h1>Lịch sử đặt vé</h1>
+                
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <button class="filter-btn" data-filter="all">Tất cả</button>
+                    <button class="filter-btn" data-filter="confirmed">Xác nhận</button>
+                    <button class="filter-btn" data-filter="pending">Chờ xử lý</button>
+                    <button class="filter-btn" data-filter="cancelled">Đã hủy</button>
+                </div>
+
+                <!-- Bookings List -->
+                <div id="bookings-list" class="bookings-list"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>RAP PHIM</h4>
+                    <p>Hệ thống rạp chiếu phim hiện đại</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Liên kết</h4>
+                    <ul>
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                        <li><a href="#">Tuyển dụng</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Chính sách</h4>
+                    <ul>
+                        <li><a href="#">Điều khoản</a></li>
+                        <li><a href="#">Bảo mật</a></li>
+                        <li><a href="#">Thanh toán</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Theo dõi</h4>
+                    <div class="social-links">
+                        <a href="#" class="social-link">Facebook</a>
+                        <a href="#" class="social-link">Instagram</a>
+                        <a href="#" class="social-link">YouTube</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 RAP PHIM. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/js/api-client.js"></script>
+    <script src="/js/bookings-client.js"></script>
+    <script src="/js/storage.js"></script>
+    <script src="/js/notification.js"></script>
+    <script>
+        let allBookings = [];
+        let currentFilter = 'all';
+
+        // Check if logged in
+        window.addEventListener('DOMContentLoaded', () => {
+            const user = Storage.getUser();
+            if (!user) {
+                Notification.error('Vui lòng đăng nhập để xem lịch sử đặt vé');
+                setTimeout(() => window.location.href = 'login.html', 1500);
+                return;
+            }
+            
+            updateAuthUI();
+            loadBookings();
+            setupFilterButtons();
+        });
+
+        function updateAuthUI() {
+            const user = Storage.getUser();
+            const authBtn = document.getElementById('auth-btn');
+            const profileMenu = document.getElementById('profile-menu');
+            
+            if (user) {
+                authBtn.style.display = 'none';
+                profileMenu.style.display = 'block';
+                document.getElementById('profile-name').textContent = user.username || user.name || 'User';
+                document.getElementById('profile-email').textContent = user.email || '';
+            } else {
+                authBtn.style.display = 'block';
+                profileMenu.style.display = 'none';
+            }
+        }
+
+        async function loadBookings() {
+            try {
+                const user = Storage.getUser();
+                if (!user || !user.id) {
+                    throw new Error('Không tìm thấy thông tin người dùng');
+                }
+
+                const response = await BookingsClient.getUserBookings(user.id);
+
+                if (response.success) {
+                    allBookings = response.data.bookings || [];
+                    displayBookings();
+                } else {
+                    showMessage(response.message || 'Lỗi khi tải dữ liệu', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                showMessage('Không thể tải lịch sử đặt vé', 'error');
+            }
+        }
+
+        function displayBookings() {
+            const container = document.getElementById('bookings-list');
+            
+            const filteredBookings = currentFilter === 'all' 
+                ? allBookings 
+                : allBookings.filter(b => b.status === currentFilter);
+
+            if (filteredBookings.length === 0) {
+                container.innerHTML = '<p class="no-bookings">Không có đặt vé nào</p>';
+                return;
+            }
+
+            container.innerHTML = filteredBookings.map(booking => `
+                <div class="booking-card">
+                    <div class="booking-poster">
+                        <img src="${booking.poster_image || '/img/default-poster.jpg'}" alt="${booking.title}">
+                    </div>
+                    <div class="booking-details">
+                        <h3 class="booking-title">${booking.title}</h3>
+                        <div class="booking-info">
+                            <p><strong>Mã đặt vé:</strong> #${booking.id}</p>
+                            <p><strong>Số ghế:</strong> ${booking.total_seats}</p>
+                            <p><strong>Tổng tiền:</strong> <span class="price">${formatPrice(booking.total_price)}</span></p>
+                            <p><strong>Ngày đặt:</strong> ${formatDateTime(booking.booking_date)}</p>
+                            <p><strong>Trạng thái:</strong> <span class="status ${booking.status}">${getStatusText(booking.status)}</span></p>
+                        </div>
+                        <div class="booking-actions">
+                            ${booking.status === 'confirmed' ? `
+                                <button class="btn-cancel" onclick="cancelBooking(${booking.id})">Hủy đặt vé</button>
+                            ` : ''}
+                            <button class="btn-details" onclick="viewBookingDetails(${booking.id})">Chi tiết</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setupFilterButtons() {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    buttons.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    displayBookings();
+                });
+            });
+            
+            // Set first button as active
+            if (buttons.length > 0) {
+                buttons[0].classList.add('active');
+            }
+        }
+
+        async function cancelBooking(bookingId) {
+            Notification.confirm(
+                'Bạn có chắc muốn hủy đặt vé này?',
+                async () => {
+                    try {
+                        const response = await BookingsClient.cancelBooking(bookingId);
+                        if (response.success) {
+                            Notification.success('Đã hủy đặt vé thành công');
+                            await new Promise(r => setTimeout(r, 1000));
+                            await loadBookings();
+                        } else {
+                            Notification.error(response.message || 'Lỗi khi hủy đặt vé');
+                        }
+                    } catch (error) {
+                        console.error('Error cancelling booking:', error);
+                        Notification.error('Không thể hủy đặt vé');
+                    }
+                }
+            );
+        }
+
+        function viewBookingDetails(bookingId) {
+            const booking = allBookings.find(b => b.id === bookingId);
+            if (booking) {
+                const details = `Chi tiết đặt vé #${booking.id}\n\nPhim: ${booking.title}\nSố ghế: ${booking.total_seats}\nTổng tiền: ${formatPrice(booking.total_price)}\nTrạng thái: ${getStatusText(booking.status)}`;
+                Notification.info(details);
+            }
+        }
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+        }
+
+        function formatDateTime(dateString) {
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day}-${month}-${year} ${hours}:${minutes}`;
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'confirmed': 'Xác nhận',
+                'pending': 'Chờ xử lý',
+                'cancelled': 'Đã hủy'
+            };
+            return statusMap[status] || status;
+        }
+
+        function showMessage(message, type) {
+            if (type === 'success') {
+                Notification.success(message);
+            } else {
+                Notification.error(message);
+            }
+        }
+
+        function handleAuthClick() {
+            window.location.href = 'login.html';
+        }
+
+        function handleLogout(event) {
+            event.preventDefault();
+            Storage.clear();
+            updateAuthUI();
+            window.location.href = 'index.html';
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const authBtn = document.getElementById('auth-btn');
+            const profileMenu = document.getElementById('profile-menu');
+            if (!event.target.closest('.btn-login') && !event.target.closest('.profile-menu')) {
+                profileMenu.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
