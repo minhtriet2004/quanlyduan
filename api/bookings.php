@@ -26,6 +26,17 @@ if ($method === 'GET') {
 
     $bookings = [];
     while ($row = $result->fetch_assoc()) {
+        // Get seat numbers for this booking
+        $booking_id = intval($row['id']);
+        $seats_query = "SELECT seat_number FROM booking_items WHERE booking_id = $booking_id ORDER BY seat_number";
+        $seats_result = $conn->query($seats_query);
+        
+        $seat_numbers = [];
+        while ($seat_row = $seats_result->fetch_assoc()) {
+            $seat_numbers[] = $seat_row['seat_number'];
+        }
+        
+        $row['seat_numbers'] = $seat_numbers;
         $bookings[] = $row;
     }
 

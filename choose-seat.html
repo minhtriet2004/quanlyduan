@@ -31,82 +31,11 @@
     </div>
     <div class="container">
         <div class="screen"></div>
-
-        <div class="row">
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat occupied"></div>
-            <div class="seat occupied"></div>
-            <div class="seat"></div>
+        <div id="seatsContainer">
+            <p style="color: white; text-align: center;">Đang tải ghế...</p>
         </div>
-
-        <div class="row">
-            <div class="seat occupied"></div>
-            <div class="seat occupied"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-        </div>
-
-        <div class="row">
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat occupied"></div>
-            <div class="seat occupied"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-        </div>
-
-        <div class="row">
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat occupied"></div>
-            <div class="seat occupied"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-        </div>
-
-        <div class="row">
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat occupied"></div>
-            <div class="seat occupied"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-        </div>
-
-        <div class="row">
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat occupied"></div>
-            <div class="seat occupied"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-        </div>
-
-        <div class="row">
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat"></div>
-            <div class="seat occupied"></div>
-            <div class="seat occupied"></div>
-            <div class="seat occupied"></div>
-            <div class="seat occupied"></div>
+        <div id="debugPanel" style="color: #0f0; font-size: 12px; margin-top: 20px; padding: 10px; background: rgba(0,0,0,0.5); border-radius: 5px; max-width: 600px; display: none;">
+            <p>Debug: <span id="debugText">Loading...</span></p>
         </div>
     </div>
     <p class="text">
@@ -140,11 +69,17 @@
     let showingId = null;
     let currentMovie = null;
     let requiredQuantity = 0;
+    let allSeats = []; // Store all seats with their info
+
+    function debug(msg) {
+        console.log(msg);
+        // Uncomment to show debug panel
+        // document.getElementById('debugPanel').style.display = 'block';
+        // document.getElementById('debugText').textContent = msg;
+    }
 
     window.addEventListener('DOMContentLoaded', () => {
         loadMovieInfo();
-        setupSeatSelection();
-        setupButtons();
     });
 
     async function loadMovieInfo() {
@@ -174,6 +109,14 @@
                 document.getElementById('movieName').textContent = currentMovie.title || 'Không xác định';
                 document.getElementById('ticketQuantity').textContent = `Bạn cần chọn ${requiredQuantity} ghế`;
                 document.getElementById('maxCount').textContent = requiredQuantity;
+                
+                // Get first showing for this movie
+                await getFirstAvailableShowing();
+                
+                // Load seats from database
+                await loadSeatsFromDatabase();
+                setupSeatSelection();
+                setupButtons();
             } else {
                 Notification.error('Không thể tải thông tin phim');
                 setTimeout(() => window.location.href = 'index.html', 1500);
@@ -183,6 +126,146 @@
             Notification.error('Lỗi khi tải thông tin phim');
             setTimeout(() => window.location.href = 'index.html', 1500);
         }
+    }
+
+    async function getFirstAvailableShowing() {
+        try {
+            // Try to get showings for this movie
+            const response = await APIClient.getShowings();
+            
+            if (!response || !response.success) {
+                console.warn('Could not load showings, using default showing_id=1');
+                showingId = 1;
+                return;
+            }
+            
+            const showings = response.data.showings || [];
+            
+            if (showings.length > 0) {
+                // Use first available showing
+                showingId = showings[0].id;
+                console.log('Using showing ID:', showingId);
+            } else {
+                console.warn('No showings found, using default showing_id=1');
+                showingId = 1;
+            }
+        } catch (error) {
+            console.error('Error getting showing:', error);
+            showingId = 1;
+        }
+    }
+
+    async function loadSeatsFromDatabase() {
+        try {
+            // Get seats from database
+            console.log('Loading seats for showing_id:', showingId);
+            const response = await APIClient.getSeats(showingId);
+            
+            console.log('Seats response:', response);
+            
+            if (!response.success) {
+                console.error('Failed to load seats:', response.message);
+                Notification.error('Lỗi khi tải danh sách ghế: ' + response.message);
+                return;
+            }
+
+            allSeats = response.data.seats || [];
+            console.log('Total seats loaded:', allSeats.length);
+            
+            if (allSeats.length === 0) {
+                console.warn('No seats found! Creating fallback seats...');
+                createFallbackSeats();
+                return;
+            }
+            
+            // Render seats dynamically
+            renderSeats();
+        } catch (error) {
+            console.error('Error loading seats:', error);
+            Notification.error('Lỗi khi tải danh sách ghế');
+        }
+    }
+
+    function createFallbackSeats() {
+        // Create fallback seats if database is empty
+        console.log('Creating fallback seats for demo purposes...');
+        allSeats = [];
+        let seatId = 1;
+        
+        // Create 6 rows x 8 seats = 48 seats
+        for (let row = 0; row < 6; row++) {
+            for (let col = 0; col < 8; col++) {
+                const rowLetter = String.fromCharCode(65 + row); // A, B, C, D, E, F
+                const colNumber = col + 1;
+                
+                allSeats.push({
+                    id: seatId,
+                    seat_number: rowLetter + colNumber,
+                    is_booked: false,
+                    showing_id: showingId
+                });
+                seatId++;
+            }
+        }
+        
+        renderSeats();
+    }
+
+    function renderSeats() {
+        console.log('Rendering seats...');
+        const container = document.getElementById('seatsContainer');
+        
+        if (!container) {
+            console.error('seatsContainer not found!');
+            return;
+        }
+        
+        container.innerHTML = '';
+
+        if (!allSeats || allSeats.length === 0) {
+            console.error('No seats to render!');
+            container.innerHTML = '<p style="color: white; text-align: center;">Không có ghế để hiển thị</p>';
+            return;
+        }
+
+        // Group seats by row (8 seats per row, 6 rows)
+        const seatsPerRow = 8;
+        const totalRows = Math.ceil(allSeats.length / seatsPerRow);
+        
+        console.log(`Rendering ${allSeats.length} seats in ${totalRows} rows`);
+
+        for (let rowIndex = 0; rowIndex < totalRows; rowIndex++) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'row';
+
+            const startIdx = rowIndex * seatsPerRow;
+            const endIdx = Math.min(startIdx + seatsPerRow, allSeats.length);
+
+            for (let i = startIdx; i < endIdx; i++) {
+                const seat = allSeats[i];
+                const seatDiv = document.createElement('div');
+                seatDiv.className = 'seat';
+                seatDiv.dataset.id = seat.id;
+                seatDiv.dataset.number = seat.seat_number;
+
+                if (seat.is_booked) {
+                    seatDiv.classList.add('occupied');
+                }
+
+                seatDiv.textContent = seat.seat_number;
+                seatDiv.style.fontSize = '11px';
+                seatDiv.style.display = 'flex';
+                seatDiv.style.alignItems = 'center';
+                seatDiv.style.justifyContent = 'center';
+                seatDiv.style.cursor = seat.is_booked ? 'not-allowed' : 'pointer';
+
+                rowDiv.appendChild(seatDiv);
+            }
+
+            container.appendChild(rowDiv);
+        }
+        
+        console.log('Seats rendered successfully');
     }
 
     function setupSeatSelection() {
@@ -212,7 +295,10 @@
     function updateSelectedSeats() {
         selectedSeats = [];
         document.querySelectorAll('.row .seat.selected').forEach(seat => {
-            selectedSeats.push(seat);
+            selectedSeats.push({
+                id: parseInt(seat.dataset.id),
+                number: seat.dataset.number
+            });
         });
         document.getElementById('count').textContent = selectedSeats.length;
 
@@ -264,18 +350,27 @@
             return;
         }
 
-        // Get booking info from session storage
-        const bookingInfo = JSON.parse(sessionStorage.getItem('bookingInfo') || '{}');
-        
-        // Create booking
+        // Ensure showing_id is set
+        if (!showingId) {
+            Notification.error('Không tìm thấy thông tin suất chiếu');
+            return;
+        }
+
+        // Create booking with actual seat IDs
         try {
-            const response = await BookingsClient.createBooking({
-                user_id: user.id,
-                movie_id: movieId,
-                showing_id: 1, // Default showing ID - can be updated based on your needs
-                seats: selectedSeats.map((_, index) => index + 1), // Seat IDs
+            const bookingData = {
+                user_id: parseInt(user.id),
+                movie_id: parseInt(movieId),
+                showing_id: parseInt(showingId),
+                seats: selectedSeats.map(s => parseInt(s.id)),
                 payment_method: 'cash'
-            });
+            };
+
+            console.log('Booking data:', bookingData);
+
+            const response = await BookingsClient.createBooking(bookingData);
+
+            console.log('Booking response:', response);
 
             if (response.success) {
                 Notification.success('Đặt vé thành công! Mã đặt vé: #' + response.data.booking_id);
@@ -288,7 +383,7 @@
             }
         } catch (error) {
             console.error('Error creating booking:', error);
-            Notification.error('Lỗi khi đặt vé');
+            Notification.error('Lỗi khi đặt vé: ' + error.message);
         }
     }
 </script>
