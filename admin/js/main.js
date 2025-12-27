@@ -47,6 +47,12 @@ function setupEventListeners() {
         });
     });
 
+    // Notification button
+    const notificationBtn = document.querySelector('.notification');
+    if (notificationBtn) {
+        notificationBtn.addEventListener('click', handleNotificationClick);
+    }
+
     // Movie operations
     const addMovieBtn = document.getElementById('add-movie-btn');
     const movieForm = document.getElementById('movie-form');
@@ -106,5 +112,22 @@ function logout() {
     if (confirm('Bạn chắc chắn muốn đăng xuất?')) {
         Storage.clear();
         window.location.href = 'login.html';
+    }
+}
+
+// ===== NOTIFICATION =====
+function handleNotificationClick() {
+    const badge = document.querySelector('.notification .badge');
+    const notificationCount = badge ? parseInt(badge.textContent) : 0;
+    
+    if (notificationCount > 0) {
+        // Nếu có thông báo, xóa badge
+        if (badge) {
+            badge.style.display = 'none';
+        }
+        Notification.success('Đã xem ' + notificationCount + ' thông báo mới');
+    } else {
+        // Nếu không có thông báo
+        Notification.info('Bạn không có thông báo mới');
     }
 }
