@@ -96,3 +96,19 @@ function bookTicket(movieId, movieTitle) {
 function viewMovieDetails(movieId) {
     window.location.href = `movie-details.html?id=${movieId}`;
 }
+
+// Toggle user dropdown menu
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('user-dropdown');
+    dropdown.classList.toggle('show');
+}
+
+// Close dropdown when click outside
+document.addEventListener('click', (e) => {
+    const userSection = document.getElementById('user-profile');
+    const dropdown = document.getElementById('user-dropdown');
+    
+    if (userSection && !userSection.contains(e.target)) {
+        dropdown?.classList.remove('show');
+    }
+});

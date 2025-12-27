@@ -24,18 +24,19 @@
                     <!-- Auth Section - Hiển thị login button hoặc user profile -->
                     <button class="btn-login" id="auth-btn" onclick="handleAuthClick()" style="display: none;">Đăng nhập</button>
                     <div class="user-section" id="user-profile" style="display: none;">
-                        <div class="user-profile-wrapper">
+                        <div class="user-profile-wrapper" onclick="toggleUserDropdown()">
                             <div class="user-avatar">👤</div>
                             <div class="user-info">
                                 <span class="username" id="username-display">User</span>
-                                <span class="user-status">Khách hàng</span>
+                                <span class="user-email" id="user-email-display">email@cinema.vn</span>
                             </div>
                         </div>
-                        <a href="bookings-history.html" class="user-menu-link" title="Lịch sử đặt vé">📋</a>
-                        <a href="#" class="user-menu-link" onclick="handleLogout(event); return false;" title="Đăng xuất">🚪</a>
+                        <div class="user-dropdown" id="user-dropdown">
+                            <a href="bookings-history.html" class="dropdown-item"><span class="icon">🎫</span> Lịch sử đặt vé</a>
+                            <a href="#" class="dropdown-item" onclick="handleLogout(event); return false;"><span class="icon">🚪</span> Đăng xuất</a>
+                        </div>
                     </div>
-                    <!-- Cart Icon -->
-                    <div class="cart-icon" title="Giỏ hàng">🛒</div>
+
                 </div>
             </div>
         </div>
@@ -132,6 +133,7 @@
                 authBtn.style.display = 'none';
                 userProfile.style.display = 'flex';
                 document.getElementById('username-display').textContent = user.username || user.user_id || 'User';
+                document.getElementById('user-email-display').textContent = user.email || 'khách hàng';
                 document.getElementById('header-username').textContent = user.username || user.user_id || 'User';
                 document.getElementById('header-email').textContent = user.email || 'khách hàng';
             } else {
