@@ -23,6 +23,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: auto;
 }
 
 .auth-container {
@@ -40,6 +41,7 @@ body {
   padding: 40px 30px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   animation: slideUp 0.5s ease-out;
+  z-index: 10;
 }
 
 @keyframes slideUp {
@@ -69,6 +71,8 @@ body {
 .auth-form {
   display: none;
   animation: fadeIn 0.4s ease-out;
+  position: relative;
+  z-index: 11;
 }
 
 .auth-form.active {
@@ -108,23 +112,29 @@ body {
 .form-group input {
   width: 100%;
   padding: 12px 14px;
-  background-color: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(229, 9, 20, 0.2);
+  background-color: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(229, 9, 20, 0.3);
   border-radius: 8px;
   color: var(--text-white);
   font-size: 14px;
   transition: all 0.3s ease;
+  cursor: text;
 }
 
 .form-group input::placeholder {
-  color: rgba(184, 184, 184, 0.5);
+  color: rgba(184, 184, 184, 0.9);
+}
+
+.form-group input:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+  border-color: rgba(229, 9, 20, 0.5);
 }
 
 .form-group input:focus {
   outline: none;
   border-color: var(--primary-red);
-  background-color: rgba(0, 0, 0, 0.5);
-  box-shadow: 0 0 8px rgba(229, 9, 20, 0.2);
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 0 12px rgba(229, 9, 20, 0.4);
 }
 
 .btn-submit {
@@ -141,6 +151,7 @@ body {
   box-shadow: 0 6px 20px rgba(229, 9, 20, 0.3);
   letter-spacing: 0.5px;
   margin-top: 10px;
+  user-select: none;
 }
 
 .btn-submit:hover {
@@ -151,6 +162,11 @@ body {
 
 .btn-submit:active {
   transform: translateY(0);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .auth-switch {
