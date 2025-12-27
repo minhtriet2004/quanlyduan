@@ -146,22 +146,10 @@
 
         function handleLogout(event) {
             event.preventDefault();
-            console.log('Logout clicked, Storage object:', Storage);
-            console.log('clearAll function exists:', typeof Storage.clearAll);
             
-            const menu = document.getElementById('profile-menu');
-            menu.classList.remove('show');
-            
-            if (typeof Storage.clearAll === 'function') {
-                Storage.clearAll();
-            } else if (typeof Storage.clear === 'function') {
-                Storage.clear();
-            } else {
-                console.error('No clear function found in Storage');
-                localStorage.clear();
-            }
-            
+            Storage.clearAll();
             updateAuthUI();
+            Notification.success('Đã đăng xuất');
             setTimeout(() => {
                 window.location.href = 'index.html';
             }, 300);
