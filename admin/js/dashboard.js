@@ -11,8 +11,11 @@ async function loadDashboard() {
         document.getElementById('total-movies').textContent = movies.length;
         document.getElementById('total-bookings').textContent = bookings.length;
         
-        // Calculate total revenue
-        const totalRevenue = bookings.reduce((sum, b) => sum + (b.total_price || 0), 0);
+        // Calculate total revenue - convert to number
+        const totalRevenue = bookings.reduce((sum, b) => {
+            const price = parseFloat(b.total_price) || 0;
+            return sum + price;
+        }, 0);
         document.getElementById('total-revenue').textContent = formatCurrency(totalRevenue);
 
         // Load recent bookings
@@ -29,12 +32,13 @@ async function loadDashboard() {
             const row = document.createElement('tr');
             // Get current movie price from movies list
             const movie = movies.find(m => m.id == booking.movie_id);
-            const currentPrice = movie ? movie.price : 0;
+            const currentPrice = movie ? parseFloat(movie.price) || 0 : 0;
+            const totalSeats = parseInt(booking.total_seats) || 0;
             row.innerHTML = `
                 <td>#${booking.id}</td>
                 <td>User ${booking.user_id}</td>
                 <td>Movie ${booking.movie_id}</td>
-                <td>${formatCurrency(currentPrice * booking.total_seats)}</td>
+                <td>${formatCurrency(currentPrice * totalSeats)}</td>
                 <td><span class="status-badge status-${booking.status}">${getStatusLabel(booking.status)}</span></td>
             `;
             tbody.appendChild(row);

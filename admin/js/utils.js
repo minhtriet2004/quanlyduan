@@ -1,6 +1,8 @@
 // ===== UTILITIES =====
 function formatCurrency(amount) {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+    // Convert to number and handle NaN
+    const num = parseFloat(amount) || 0;
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
 }
 
 function formatDate(dateString) {
