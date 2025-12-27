@@ -44,7 +44,7 @@ function displayMovies(movies, status) {
         const movieCard = document.createElement('div');
         movieCard.className = 'movie-card';
         
-        const posterImg = movie.poster_image ? movie.poster_image : '/img/default-poster.jpg';
+        const posterImg = movie.poster_image ? movie.poster_image : 'img/default-poster.jpg';
         const buttonText = status === 'showing' ? 'Mua vé' : 'Đặt trước';
         const badgeHtml = status === 'coming_soon' ? '<span class="badge-coming">Sắp chiếu</span>' : '';
         

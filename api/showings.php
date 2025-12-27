@@ -10,19 +10,32 @@ if ($method === 'GET') {
     $showing_date = $_GET['showing_date'] ?? null;
 
     $query = "SELECT s.*, m.title, m.poster_image FROM showings s JOIN movies m ON s.movie_id = m.id WHERE 1=1";
+    $params = [];
+    $types = "";
 
     if ($movie_id) {
         $movie_id = intval($movie_id);
-        $query .= " AND s.movie_id = $movie_id";
+        $query .= " AND s.movie_id = ?";
+        $params[] = $movie_id;
+        $types .= "i";
     }
 
     if ($showing_date) {
         $showing_date = sanitize($showing_date);
-        $query .= " AND s.showing_date = '$showing_date'";
+        $query .= " AND s.showing_date = ?";
+        $params[] = $showing_date;
+        $types .= "s";
     }
 
     $query .= " ORDER BY s.showing_date, s.showing_time";
-    $result = $conn->query($query);
+    
+    $stmt = $conn->prepare($query);
+    if ($params) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
 
     $showings = [];
     while ($row = $result->fetch_assoc()) {
@@ -48,11 +61,13 @@ else if ($method === 'POST') {
             sendResponse(false, 'All fields are required', null, 400);
         }
 
-        $query = "INSERT INTO showings (movie_id, showing_date, showing_time, room_number, total_seats, available_seats, price) 
-                  VALUES ($movie_id, '$showing_date', '$showing_time', $room_number, $total_seats, $total_seats, $price)";
+        $stmt = $conn->prepare("INSERT INTO showings (movie_id, showing_date, showing_time, room_number, total_seats, available_seats, price) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issiiid", $movie_id, $showing_date, $showing_time, $room_number, $total_seats, $total_seats, $price);
 
-        if ($conn->query($query)) {
+        if ($stmt->execute()) {
             $showing_id = $conn->insert_id;
+            $stmt->close();
 
             // Generate seats
             $seatCount = 0;
@@ -61,7 +76,10 @@ else if ($method === 'POST') {
                 $col = (($i - 1) % 10) + 1;
                 $seat_number = $row . $col;
                 
-                $conn->query("INSERT INTO seats (showing_id, seat_number) VALUES ($showing_id, '$seat_number')");
+                $stmt = $conn->prepare("INSERT INTO seats (showing_id, seat_number) VALUES (?, ?)");
+                $stmt->bind_param("is", $showing_id, $seat_number);
+                $stmt->execute();
+                $stmt->close();
             }
 
             sendResponse(true, 'Showing added successfully', ['showing_id' => $showing_id]);
@@ -81,9 +99,11 @@ else if ($method === 'POST') {
             sendResponse(false, 'Showing ID is required', null, 400);
         }
 
-        $query = "UPDATE showings SET showing_date = '$showing_date', showing_time = '$showing_time', price = $price WHERE id = $id";
+        $stmt = $conn->prepare("UPDATE showings SET showing_date = ?, showing_time = ?, price = ? WHERE id = ?");
+        $stmt->bind_param("ssdi", $showing_date, $showing_time, $price, $id);
 
-        if ($conn->query($query)) {
+        if ($stmt->execute()) {
+            $stmt->close();
             sendResponse(true, 'Showing updated successfully');
         } else {
             sendResponse(false, 'Failed to update showing', null, 500);
@@ -98,9 +118,11 @@ else if ($method === 'POST') {
             sendResponse(false, 'Showing ID is required', null, 400);
         }
 
-        $query = "DELETE FROM showings WHERE id = $id";
+        $stmt = $conn->prepare("DELETE FROM showings WHERE id = ?");
+        $stmt->bind_param("i", $id);
 
-        if ($conn->query($query)) {
+        if ($stmt->execute()) {
+            $stmt->close();
             sendResponse(true, 'Showing deleted successfully');
         } else {
             sendResponse(false, 'Failed to delete showing', null, 500);
@@ -116,9 +138,11 @@ else if ($method === 'POST') {
             sendResponse(false, 'Movie ID is required', null, 400);
         }
 
-        $query = "UPDATE showings SET price = $price WHERE movie_id = $movie_id";
+        $stmt = $conn->prepare("UPDATE showings SET price = ? WHERE movie_id = ?");
+        $stmt->bind_param("di", $price, $movie_id);
 
-        if ($conn->query($query)) {
+        if ($stmt->execute()) {
+            $stmt->close();
             sendResponse(true, 'All showings prices updated successfully');
         } else {
             sendResponse(false, 'Failed to update showings prices: ' . $conn->error, null, 500);
@@ -134,8 +158,11 @@ else if ($method === 'POST') {
         }
 
         // Check if showing exists for this movie
-        $check_query = "SELECT id FROM showings WHERE movie_id = $movie_id LIMIT 1";
-        $check_result = $conn->query($check_query);
+        $stmt = $conn->prepare("SELECT id FROM showings WHERE movie_id = ? LIMIT 1");
+        $stmt->bind_param("i", $movie_id);
+        $stmt->execute();
+        $check_result = $stmt->get_result();
+        $stmt->close();
 
         if ($check_result && $check_result->num_rows > 0) {
             // Use existing showing
@@ -150,22 +177,32 @@ else if ($method === 'POST') {
             $default_seats = 48; // 6 rows x 8 seats
             
             // Get movie price
-            $movie = $conn->query("SELECT price FROM movies WHERE id = $movie_id")->fetch_assoc();
+            $stmt = $conn->prepare("SELECT price FROM movies WHERE id = ?");
+            $stmt->bind_param("i", $movie_id);
+            $stmt->execute();
+            $movie_result = $stmt->get_result();
+            $movie = $movie_result->fetch_assoc();
+            $stmt->close();
+            
             $movie_price = $movie ? floatval($movie['price']) : 0;
 
-            $insert_query = "INSERT INTO showings (movie_id, showing_date, showing_time, room_number, total_seats, available_seats, price) 
-                           VALUES ($movie_id, '$today', '$default_time', $default_room, $default_seats, $default_seats, $movie_price)";
+            $stmt = $conn->prepare("INSERT INTO showings (movie_id, showing_date, showing_time, room_number, total_seats, available_seats, price) 
+                           VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("issiid", $movie_id, $today, $default_time, $default_room, $default_seats, $default_seats, $movie_price);
 
-            if ($conn->query($insert_query)) {
+            if ($stmt->execute()) {
                 $showing_id = $conn->insert_id;
+                $stmt->close();
 
                 // Generate seats: 6 rows x 8 seats (A1-A8, B1-B8, etc.)
                 for ($row = 0; $row < 6; $row++) {
                     $row_letter = chr(65 + $row); // A, B, C, D, E, F
                     for ($col = 1; $col <= 8; $col++) {
                         $seat_number = $row_letter . $col;
-                        $seat_insert = "INSERT INTO seats (showing_id, seat_number, is_booked) VALUES ($showing_id, '$seat_number', 0)";
-                        $conn->query($seat_insert);
+                        $stmt = $conn->prepare("INSERT INTO seats (showing_id, seat_number, is_booked) VALUES (?, ?, 0)");
+                        $stmt->bind_param("is", $showing_id, $seat_number);
+                        $stmt->execute();
+                        $stmt->close();
                     }
                 }
 

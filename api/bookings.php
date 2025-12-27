@@ -10,26 +10,42 @@ if ($method === 'GET') {
     $status = $_GET['status'] ?? null;
 
     $query = "SELECT b.*, m.title, m.poster_image FROM bookings b JOIN movies m ON b.movie_id = m.id WHERE 1=1";
+    $params = [];
+    $types = "";
 
     if ($user_id) {
         $user_id = intval($user_id);
-        $query .= " AND b.user_id = $user_id";
+        $query .= " AND b.user_id = ?";
+        $params[] = $user_id;
+        $types .= "i";
     }
 
     if ($status) {
         $status = sanitize($status);
-        $query .= " AND b.status = '$status'";
+        $query .= " AND b.status = ?";
+        $params[] = $status;
+        $types .= "s";
     }
 
     $query .= " ORDER BY b.booking_date DESC";
-    $result = $conn->query($query);
+    
+    $stmt = $conn->prepare($query);
+    if ($params) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
 
     $bookings = [];
     while ($row = $result->fetch_assoc()) {
         // Get seat numbers for this booking
         $booking_id = intval($row['id']);
-        $seats_query = "SELECT seat_number FROM booking_items WHERE booking_id = $booking_id ORDER BY seat_number";
-        $seats_result = $conn->query($seats_query);
+        $stmt = $conn->prepare("SELECT seat_number FROM booking_items WHERE booking_id = ? ORDER BY seat_number");
+        $stmt->bind_param("i", $booking_id);
+        $stmt->execute();
+        $seats_result = $stmt->get_result();
+        $stmt->close();
         
         $seat_numbers = [];
         while ($seat_row = $seats_result->fetch_assoc()) {
@@ -63,7 +79,12 @@ else if ($method === 'POST') {
         }
         
         // Check if user exists
-        $user_check = $conn->query("SELECT id FROM users WHERE id = $user_id");
+        $stmt = $conn->prepare("SELECT id FROM users WHERE id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $user_check = $stmt->get_result();
+        $stmt->close();
+        
         if (!$user_check || $user_check->num_rows === 0) {
             sendResponse(false, 'Người dùng không tồn tại', null, 404);
         }
@@ -77,7 +98,13 @@ else if ($method === 'POST') {
         }
 
         // Get showing and movie details
-        $showing = $conn->query("SELECT * FROM showings WHERE id = $showing_id")->fetch_assoc();
+        $stmt = $conn->prepare("SELECT * FROM showings WHERE id = ?");
+        $stmt->bind_param("i", $showing_id);
+        $stmt->execute();
+        $showing_result = $stmt->get_result();
+        $showing = $showing_result->fetch_assoc();
+        $stmt->close();
+        
         if (!$showing) {
             error_log("Showing not found: id=$showing_id. Checking all showings...");
             $all_showings = $conn->query("SELECT id FROM showings");
@@ -90,28 +117,46 @@ else if ($method === 'POST') {
         $total_price = count($seats) * $showing['price'];
 
         // Create booking
-        $query = "INSERT INTO bookings (user_id, showing_id, movie_id, total_seats, total_price, status, payment_method) 
-                  VALUES ($user_id, $showing_id, $movie_id, " . count($seats) . ", $total_price, 'confirmed', '$payment_method')";
+        $stmt = $conn->prepare("INSERT INTO bookings (user_id, showing_id, movie_id, total_seats, total_price, status, payment_method) 
+                  VALUES (?, ?, ?, ?, ?, 'confirmed', ?)");
+        $stmt->bind_param("iiidis", $user_id, $showing_id, $movie_id, count($seats), $total_price, $payment_method);
 
-        if ($conn->query($query)) {
+        if ($stmt->execute()) {
             $booking_id = $conn->insert_id;
+            $stmt->close();
 
             // Add booking items
             foreach ($seats as $seat_id) {
                 $seat_id = intval($seat_id);
-                $seat = $conn->query("SELECT * FROM seats WHERE id = $seat_id")->fetch_assoc();
+                $stmt = $conn->prepare("SELECT * FROM seats WHERE id = ?");
+                $stmt->bind_param("i", $seat_id);
+                $stmt->execute();
+                $seat_result = $stmt->get_result();
+                $seat = $seat_result->fetch_assoc();
+                $stmt->close();
                 
                 if ($seat) {
-                    $conn->query("INSERT INTO booking_items (booking_id, seat_id, seat_number, price) 
-                                 VALUES ($booking_id, $seat_id, '{$seat['seat_number']}', {$showing['price']})");
+                    $stmt = $conn->prepare("INSERT INTO booking_items (booking_id, seat_id, seat_number, price) 
+                                 VALUES (?, ?, ?, ?)");
+                    $price = $showing['price'];
+                    $stmt->bind_param("iisi", $booking_id, $seat_id, $seat['seat_number'], $price);
+                    $stmt->execute();
+                    $stmt->close();
                     
                     // Mark seat as booked
-                    $conn->query("UPDATE seats SET is_booked = TRUE WHERE id = $seat_id");
+                    $stmt = $conn->prepare("UPDATE seats SET is_booked = TRUE WHERE id = ?");
+                    $stmt->bind_param("i", $seat_id);
+                    $stmt->execute();
+                    $stmt->close();
                 }
             }
 
             // Update available seats
-            $conn->query("UPDATE showings SET available_seats = available_seats - " . count($seats) . " WHERE id = $showing_id");
+            $remaining = count($seats);
+            $stmt = $conn->prepare("UPDATE showings SET available_seats = available_seats - ? WHERE id = ?");
+            $stmt->bind_param("ii", $remaining, $showing_id);
+            $stmt->execute();
+            $stmt->close();
 
             sendResponse(true, 'Booking created successfully', ['booking_id' => $booking_id]);
         } else {
@@ -128,23 +173,45 @@ else if ($method === 'POST') {
         }
 
         // Get booking details
-        $booking = $conn->query("SELECT * FROM bookings WHERE id = $booking_id")->fetch_assoc();
+        $stmt = $conn->prepare("SELECT * FROM bookings WHERE id = ?");
+        $stmt->bind_param("i", $booking_id);
+        $stmt->execute();
+        $booking_result = $stmt->get_result();
+        $booking = $booking_result->fetch_assoc();
+        $stmt->close();
+        
         if (!$booking) {
             sendResponse(false, 'Booking not found', null, 404);
         }
 
         // Get booked seats
-        $seats_result = $conn->query("SELECT seat_id FROM booking_items WHERE booking_id = $booking_id");
+        $stmt = $conn->prepare("SELECT seat_id FROM booking_items WHERE booking_id = ?");
+        $stmt->bind_param("i", $booking_id);
+        $stmt->execute();
+        $seats_result = $stmt->get_result();
+        $stmt->close();
         
         while ($row = $seats_result->fetch_assoc()) {
-            $conn->query("UPDATE seats SET is_booked = FALSE WHERE id = {$row['seat_id']}");
+            $seat_id = $row['seat_id'];
+            $stmt = $conn->prepare("UPDATE seats SET is_booked = FALSE WHERE id = ?");
+            $stmt->bind_param("i", $seat_id);
+            $stmt->execute();
+            $stmt->close();
         }
 
         // Update booking status
-        $conn->query("UPDATE bookings SET status = 'cancelled' WHERE id = $booking_id");
+        $stmt = $conn->prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?");
+        $stmt->bind_param("i", $booking_id);
+        $stmt->execute();
+        $stmt->close();
 
         // Update available seats
-        $conn->query("UPDATE showings SET available_seats = available_seats + {$booking['total_seats']} WHERE id = {$booking['showing_id']}");
+        $showing_id = $booking['showing_id'];
+        $total_seats = $booking['total_seats'];
+        $stmt = $conn->prepare("UPDATE showings SET available_seats = available_seats + ? WHERE id = ?");
+        $stmt->bind_param("ii", $total_seats, $showing_id);
+        $stmt->execute();
+        $stmt->close();
 
         sendResponse(true, 'Booking cancelled successfully');
     }
@@ -169,23 +236,46 @@ else if ($method === 'POST') {
         }
 
         // Get current booking to check if we need to free seats
-        $booking = $conn->query("SELECT * FROM bookings WHERE id = $booking_id")->fetch_assoc();
+        $stmt = $conn->prepare("SELECT * FROM bookings WHERE id = ?");
+        $stmt->bind_param("i", $booking_id);
+        $stmt->execute();
+        $booking_result = $stmt->get_result();
+        $booking = $booking_result->fetch_assoc();
+        $stmt->close();
+        
         if (!$booking) {
             sendResponse(false, 'Booking not found', null, 404);
         }
 
         // If changing to cancelled, free up seats
         if ($status === 'cancelled' && $booking['status'] !== 'cancelled') {
-            $seats_result = $conn->query("SELECT seat_id FROM booking_items WHERE booking_id = $booking_id");
+            $stmt = $conn->prepare("SELECT seat_id FROM booking_items WHERE booking_id = ?");
+            $stmt->bind_param("i", $booking_id);
+            $stmt->execute();
+            $seats_result = $stmt->get_result();
+            $stmt->close();
+            
             while ($row = $seats_result->fetch_assoc()) {
-                $conn->query("UPDATE seats SET is_booked = FALSE WHERE id = {$row['seat_id']}");
+                $seat_id = $row['seat_id'];
+                $stmt = $conn->prepare("UPDATE seats SET is_booked = FALSE WHERE id = ?");
+                $stmt->bind_param("i", $seat_id);
+                $stmt->execute();
+                $stmt->close();
             }
-            $conn->query("UPDATE showings SET available_seats = available_seats + {$booking['total_seats']} WHERE id = {$booking['showing_id']}");
+            $showing_id = $booking['showing_id'];
+            $total_seats = $booking['total_seats'];
+            $stmt = $conn->prepare("UPDATE showings SET available_seats = available_seats + ? WHERE id = ?");
+            $stmt->bind_param("ii", $total_seats, $showing_id);
+            $stmt->execute();
+            $stmt->close();
         }
 
         // Update booking status
-        $query = "UPDATE bookings SET status = '$status' WHERE id = $booking_id";
-        if ($conn->query($query)) {
+        $stmt = $conn->prepare("UPDATE bookings SET status = ? WHERE id = ?");
+        $stmt->bind_param("si", $status, $booking_id);
+        
+        if ($stmt->execute()) {
+            $stmt->close();
             sendResponse(true, 'Booking updated successfully');
         } else {
             sendResponse(false, 'Failed to update booking: ' . $conn->error, null, 500);
@@ -201,26 +291,52 @@ else if ($method === 'POST') {
         }
 
         // Get booking to free seats
-        $booking = $conn->query("SELECT * FROM bookings WHERE id = $booking_id")->fetch_assoc();
+        $stmt = $conn->prepare("SELECT * FROM bookings WHERE id = ?");
+        $stmt->bind_param("i", $booking_id);
+        $stmt->execute();
+        $booking_result = $stmt->get_result();
+        $booking = $booking_result->fetch_assoc();
+        $stmt->close();
+        
         if (!$booking) {
             sendResponse(false, 'Booking not found', null, 404);
         }
 
         // Free up seats
-        $seats_result = $conn->query("SELECT seat_id FROM booking_items WHERE booking_id = $booking_id");
+        $stmt = $conn->prepare("SELECT seat_id FROM booking_items WHERE booking_id = ?");
+        $stmt->bind_param("i", $booking_id);
+        $stmt->execute();
+        $seats_result = $stmt->get_result();
+        $stmt->close();
+        
         while ($row = $seats_result->fetch_assoc()) {
-            $conn->query("UPDATE seats SET is_booked = FALSE WHERE id = {$row['seat_id']}");
+            $seat_id = $row['seat_id'];
+            $stmt = $conn->prepare("UPDATE seats SET is_booked = FALSE WHERE id = ?");
+            $stmt->bind_param("i", $seat_id);
+            $stmt->execute();
+            $stmt->close();
         }
 
         // Update available seats in showing
-        $conn->query("UPDATE showings SET available_seats = available_seats + {$booking['total_seats']} WHERE id = {$booking['showing_id']}");
+        $showing_id = $booking['showing_id'];
+        $total_seats = $booking['total_seats'];
+        $stmt = $conn->prepare("UPDATE showings SET available_seats = available_seats + ? WHERE id = ?");
+        $stmt->bind_param("ii", $total_seats, $showing_id);
+        $stmt->execute();
+        $stmt->close();
 
         // Delete booking items
-        $conn->query("DELETE FROM booking_items WHERE booking_id = $booking_id");
+        $stmt = $conn->prepare("DELETE FROM booking_items WHERE booking_id = ?");
+        $stmt->bind_param("i", $booking_id);
+        $stmt->execute();
+        $stmt->close();
 
         // Delete booking
-        $query = "DELETE FROM bookings WHERE id = $booking_id";
-        if ($conn->query($query)) {
+        $stmt = $conn->prepare("DELETE FROM bookings WHERE id = ?");
+        $stmt->bind_param("i", $booking_id);
+        
+        if ($stmt->execute()) {
+            $stmt->close();
             sendResponse(true, 'Booking deleted successfully');
         } else {
             sendResponse(false, 'Failed to delete booking: ' . $conn->error, null, 500);

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thông Tin Phim</title>
-    <link rel="stylesheet" href="/css/movie-details.css">
-    <link rel="stylesheet" href="/css/notification.css">
+    <link rel="stylesheet" href="css/movie-details.css">
+    <link rel="stylesheet" href="css/notification.css">
 </head>
 <body>
 
@@ -39,9 +39,9 @@
     </div>
 </div>
 
-<script src="/js/api-client.js"></script>
-<script src="/js/storage.js"></script>
-<script src="/js/notification.js"></script>
+<script src="../js/api-client.js"></script>
+<script src="../js/storage.js"></script>
+<script src="../js/notification.js"></script>
 <script>
     let currentMovie = null;
     let ticketPrice = 0;
@@ -82,7 +82,7 @@
     function displayMovieInfo() {
         if (!currentMovie) return;
 
-        document.getElementById('poster').src = currentMovie.poster_image || '/img/default-poster.jpg';
+        document.getElementById('poster').src = currentMovie.poster_image || 'img/default-poster.jpg';
         document.getElementById('title').textContent = currentMovie.title;
         document.getElementById('genre').textContent = currentMovie.genre || 'N/A';
         document.getElementById('duration').textContent = currentMovie.duration || 'N/A';
