@@ -54,13 +54,36 @@ else if ($method === 'POST') {
         $seats = $input['seats'] ?? []; // Array of seat IDs
         $payment_method = sanitize($input['payment_method'] ?? 'cash');
 
-        if ($user_id === 0 || $showing_id === 0 || empty($seats)) {
-            sendResponse(false, 'All fields are required', null, 400);
+        // Log for debugging
+        error_log("CREATE BOOKING: user_id=$user_id, showing_id=$showing_id, movie_id=$movie_id, seats_count=" . count($seats));
+
+        // Detailed validation with specific error messages
+        if ($user_id === 0) {
+            sendResponse(false, 'User ID is required or invalid', null, 400);
+        }
+        
+        // Check if user exists
+        $user_check = $conn->query("SELECT id FROM users WHERE id = $user_id");
+        if (!$user_check || $user_check->num_rows === 0) {
+            sendResponse(false, 'Người dùng không tồn tại', null, 404);
+        }
+        
+        if ($showing_id === 0) {
+            sendResponse(false, 'Showing ID is required or invalid (received: ' . ($input['showing_id'] ?? 'null') . ')', null, 400);
+        }
+        
+        if (empty($seats)) {
+            sendResponse(false, 'At least one seat must be selected', null, 400);
         }
 
         // Get showing and movie details
         $showing = $conn->query("SELECT * FROM showings WHERE id = $showing_id")->fetch_assoc();
         if (!$showing) {
+            error_log("Showing not found: id=$showing_id. Checking all showings...");
+            $all_showings = $conn->query("SELECT id FROM showings");
+            while ($row = $all_showings->fetch_assoc()) {
+                error_log("  - Showing ID: " . $row['id']);
+            }
             sendResponse(false, 'Showing not found', null, 404);
         }
 
@@ -124,6 +147,84 @@ else if ($method === 'POST') {
         $conn->query("UPDATE showings SET available_seats = available_seats + {$booking['total_seats']} WHERE id = {$booking['showing_id']}");
 
         sendResponse(true, 'Booking cancelled successfully');
+    }
+
+    // Update booking status (Admin)
+    else if ($action === 'update') {
+        $booking_id = intval($input['id'] ?? 0);
+        $status = sanitize($input['status'] ?? '');
+        
+        if ($booking_id === 0) {
+            sendResponse(false, 'Booking ID is required', null, 400);
+        }
+
+        if (empty($status)) {
+            sendResponse(false, 'Status is required', null, 400);
+        }
+
+        // Valid statuses
+        $valid_statuses = ['pending', 'confirmed', 'completed', 'cancelled'];
+        if (!in_array($status, $valid_statuses)) {
+            sendResponse(false, 'Invalid status', null, 400);
+        }
+
+        // Get current booking to check if we need to free seats
+        $booking = $conn->query("SELECT * FROM bookings WHERE id = $booking_id")->fetch_assoc();
+        if (!$booking) {
+            sendResponse(false, 'Booking not found', null, 404);
+        }
+
+        // If changing to cancelled, free up seats
+        if ($status === 'cancelled' && $booking['status'] !== 'cancelled') {
+            $seats_result = $conn->query("SELECT seat_id FROM booking_items WHERE booking_id = $booking_id");
+            while ($row = $seats_result->fetch_assoc()) {
+                $conn->query("UPDATE seats SET is_booked = FALSE WHERE id = {$row['seat_id']}");
+            }
+            $conn->query("UPDATE showings SET available_seats = available_seats + {$booking['total_seats']} WHERE id = {$booking['showing_id']}");
+        }
+
+        // Update booking status
+        $query = "UPDATE bookings SET status = '$status' WHERE id = $booking_id";
+        if ($conn->query($query)) {
+            sendResponse(true, 'Booking updated successfully');
+        } else {
+            sendResponse(false, 'Failed to update booking: ' . $conn->error, null, 500);
+        }
+    }
+
+    // Delete booking (Admin)
+    else if ($action === 'delete') {
+        $booking_id = intval($input['id'] ?? 0);
+        
+        if ($booking_id === 0) {
+            sendResponse(false, 'Booking ID is required', null, 400);
+        }
+
+        // Get booking to free seats
+        $booking = $conn->query("SELECT * FROM bookings WHERE id = $booking_id")->fetch_assoc();
+        if (!$booking) {
+            sendResponse(false, 'Booking not found', null, 404);
+        }
+
+        // Free up seats
+        $seats_result = $conn->query("SELECT seat_id FROM booking_items WHERE booking_id = $booking_id");
+        while ($row = $seats_result->fetch_assoc()) {
+            $conn->query("UPDATE seats SET is_booked = FALSE WHERE id = {$row['seat_id']}");
+        }
+
+        // Update available seats in showing
+        $conn->query("UPDATE showings SET available_seats = available_seats + {$booking['total_seats']} WHERE id = {$booking['showing_id']}");
+
+        // Delete booking items
+        $conn->query("DELETE FROM booking_items WHERE booking_id = $booking_id");
+
+        // Delete booking
+        $query = "DELETE FROM bookings WHERE id = $booking_id";
+        if ($conn->query($query)) {
+            sendResponse(true, 'Booking deleted successfully');
+        } else {
+            sendResponse(false, 'Failed to delete booking: ' . $conn->error, null, 500);
+        }
     }
 }
 

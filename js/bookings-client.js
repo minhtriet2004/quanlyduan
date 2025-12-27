@@ -4,6 +4,11 @@
  */
 class BookingsClient {
     static getApiPath() {
+        // Detect API base URL - works with or without /quanlyduan in path
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('/quanlyduan/')) {
+            return '/quanlyduan/api/bookings.php';
+        }
         return '/api/bookings.php';
     }
 

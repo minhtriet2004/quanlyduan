@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Quản Lý Rạp Phim</title>
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="../css/notification.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -303,52 +304,72 @@
                 <h2 id="movie-modal-title">Thêm Phim</h2>
                 <button class="modal-close">&times;</button>
             </div>
-            <form id="movie-form">
-                <div class="form-group">
-                    <label>Tên Phim *</label>
-                    <input type="text" id="movie-title" required>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Thể Loại *</label>
-                        <input type="text" id="movie-genre" required>
+            <div class="modal-body">
+                <form id="movie-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tên Phim *</label>
+                            <input type="text" id="movie-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Thể Loại *</label>
+                            <input type="text" id="movie-genre" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Thời Lượng (phút) *</label>
+                            <input type="number" id="movie-duration" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Giá Vé (VND) *</label>
+                            <input type="number" id="movie-price" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Đạo Diễn</label>
+                            <input type="text" id="movie-director">
+                        </div>
+                        <div class="form-group">
+                            <label>Đánh Giá (0-10)</label>
+                            <input type="number" id="movie-rating" min="0" max="10" step="0.1">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Khởi Chiếu *</label>
+                            <input type="date" id="movie-release-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Trạng Thái</label>
+                            <select id="movie-status">
+                                <option value="upcoming">Sắp Chiếu</option>
+                                <option value="showing">Đang Chiếu</option>
+                                <option value="ended">Kết Thúc</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>Thời Lượng (phút) *</label>
-                        <input type="number" id="movie-duration" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Giá Vé (VND) *</label>
-                        <input type="number" id="movie-price" required>
+                        <label>Mô Tả</label>
+                        <textarea id="movie-description" rows="2"></textarea>
                     </div>
                     <div class="form-group">
-                        <label>Khởi Chiếu *</label>
-                        <input type="date" id="movie-release-date" required>
+                        <label>URL Poster</label>
+                        <input type="text" id="movie-poster">
                     </div>
+                    <div class="form-group">
+                        <label>Upload Ảnh Poster</label>
+                        <input type="file" id="movie-poster-file" accept="image/*">
+                    </div>
+                </form>
+                <div class="poster-preview-wrapper">
+                    <div id="poster-preview" class="poster-preview"></div>
                 </div>
-                <div class="form-group">
-                    <label>Mô Tả</label>
-                    <textarea id="movie-description" rows="4"></textarea>
-                </div>
-                <div class="form-group">
-                    <label>URL Poster</label>
-                    <input type="url" id="movie-poster">
-                </div>
-                <div class="form-group">
-                    <label>Trạng Thái</label>
-                    <select id="movie-status">
-                        <option value="upcoming">Sắp Chiếu</option>
-                        <option value="showing">Đang Chiếu</option>
-                        <option value="ended">Kết Thúc</option>
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary modal-close-btn">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Lưu</button>
-                </div>
-            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-close-btn">Hủy</button>
+                <button type="submit" form="movie-form" class="btn btn-primary">Lưu</button>
+            </div>
         </div>
     </div>
 
@@ -393,7 +414,9 @@
     </div>
 
     <!-- Load các JavaScript modules -->
+    <script src="../js/storage.js"></script>
     <script src="../js/api-client.js"></script>
+    <script src="../js/notification.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/dashboard.js"></script>
     <script src="js/movies.js"></script>

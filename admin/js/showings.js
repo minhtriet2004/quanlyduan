@@ -42,6 +42,7 @@ function openShowingModal() {
     document.getElementById('showing-form').reset();
     document.getElementById('showing-form').dataset.showingId = '';
     document.getElementById('showing-modal').style.display = 'block';
+    setupFormEnterKeyForShowing();
 }
 
 async function editShowing(id) {
@@ -127,4 +128,29 @@ async function deleteShowingConfirm(id) {
             showNotification('Lỗi khi xóa suất chiếu!', 'error');
         }
     }
+}
+
+// Setup Enter key submission for showing form
+function setupFormEnterKeyForShowing() {
+    const form = document.getElementById('showing-form');
+    if (!form) return;
+    
+    // Get all input and select elements
+    const inputs = form.querySelectorAll('input:not([type="button"]):not([type="submit"]), select');
+    
+    inputs.forEach(input => {
+        input.addEventListener('keypress', function(e) {
+            // Check if Enter key was pressed
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                // Submit the form
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.click();
+                } else {
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
+    });
 }

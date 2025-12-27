@@ -12,7 +12,7 @@
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <div class="logo">RAP PHIM</div>
+                <div class="logo">RẠP PHIM</div>
                 <nav class="nav">
                     <a href="#" class="nav-link active">Trang chủ</a>
                     <a href="#now-showing" class="nav-link">Phim đang chiếu</a>
@@ -20,17 +20,22 @@
                     <a href="rap.html" class="nav-link">Rạp</a>
                     <a href="#" class="nav-link">Khuyến mãi</a>
                 </nav>
-                <button class="btn-login" id="auth-btn" onclick="handleAuthClick()">Đăng nhập</button>
-                <div class="profile-menu" id="profile-menu" style="display: none;">
-                    <div class="profile-header">
-                        <div class="profile-avatar">👤</div>
-                        <div class="profile-info">
-                            <p class="profile-name" id="profile-name"></p>
-                            <p class="profile-email" id="profile-email"></p>
+                <div class="header-actions">
+                    <!-- Auth Section - Hiển thị login button hoặc user profile -->
+                    <button class="btn-login" id="auth-btn" onclick="handleAuthClick()" style="display: none;">Đăng nhập</button>
+                    <div class="user-section" id="user-profile" style="display: none;">
+                        <div class="user-profile-wrapper">
+                            <div class="user-avatar">👤</div>
+                            <div class="user-info">
+                                <span class="username" id="username-display">User</span>
+                                <span class="user-status">Khách hàng</span>
+                            </div>
                         </div>
+                        <a href="bookings-history.html" class="user-menu-link" title="Lịch sử đặt vé">📋</a>
+                        <a href="#" class="user-menu-link" onclick="handleLogout(event); return false;" title="Đăng xuất">🚪</a>
                     </div>
-                    <a href="bookings-history.html" class="profile-link">Lịch sử đặt vé</a>
-                    <a href="#" class="profile-link" onclick="handleLogout(event)">Đăng xuất</a>
+                    <!-- Cart Icon -->
+                    <div class="cart-icon" title="Giỏ hàng">🛒</div>
                 </div>
             </div>
         </div>
@@ -121,44 +126,55 @@
         function updateAuthUI() {
             const user = Storage.getUser();
             const authBtn = document.getElementById('auth-btn');
-            const profileMenu = document.getElementById('profile-menu');
+            const userProfile = document.getElementById('user-profile');
             
             if (user) {
                 authBtn.style.display = 'none';
-                profileMenu.style.display = 'block';
-                document.getElementById('profile-name').textContent = user.username || user.name || 'User';
-                document.getElementById('profile-email').textContent = user.email || '';
+                userProfile.style.display = 'flex';
+                document.getElementById('username-display').textContent = user.username || user.user_id || 'User';
+                document.getElementById('header-username').textContent = user.username || user.user_id || 'User';
+                document.getElementById('header-email').textContent = user.email || 'khách hàng';
             } else {
                 authBtn.style.display = 'block';
-                profileMenu.style.display = 'none';
+                userProfile.style.display = 'none';
             }
         }
 
         function handleAuthClick() {
-            window.location.href = 'login.html';
+            window.location.href = 'auth.html';
         }
 
         function handleLogout(event) {
             event.preventDefault();
-            Storage.clear();
-            updateAuthUI();
-            window.location.href = 'index.html';
-        }
-
-        // Toggle profile menu on click
-        document.getElementById('auth-btn').addEventListener('click', function() {
+            console.log('Logout clicked, Storage object:', Storage);
+            console.log('clearAll function exists:', typeof Storage.clearAll);
+            
             const menu = document.getElementById('profile-menu');
-            if (menu.style.display === 'block') {
-                menu.style.display = 'none';
+            menu.classList.remove('show');
+            
+            if (typeof Storage.clearAll === 'function') {
+                Storage.clearAll();
+            } else if (typeof Storage.clear === 'function') {
+                Storage.clear();
+            } else {
+                console.error('No clear function found in Storage');
+                localStorage.clear();
             }
-        });
+            
+            updateAuthUI();
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 300);
+        }
 
         // Close menu when clicking outside
         document.addEventListener('click', function(event) {
-            const authBtn = document.getElementById('auth-btn');
-            const profileMenu = document.getElementById('profile-menu');
-            if (!event.target.closest('.btn-login') && !event.target.closest('.profile-menu')) {
-                profileMenu.style.display = 'none';
+            const userSection = document.getElementById('user-profile');
+            const profileDropdown = document.getElementById('profile-menu');
+            const wrapper = document.querySelector('.user-profile-wrapper');
+            if (!event.target.closest('.user-section') && !event.target.closest('.profile-dropdown')) {
+                profileDropdown.classList.remove('show');
+                wrapper.style.display = 'flex';
             }
         });
     </script>

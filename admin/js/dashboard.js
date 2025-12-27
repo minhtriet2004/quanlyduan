@@ -27,11 +27,14 @@ async function loadDashboard() {
 
         recentBookings.forEach(booking => {
             const row = document.createElement('tr');
+            // Get current movie price from movies list
+            const movie = movies.find(m => m.id == booking.movie_id);
+            const currentPrice = movie ? movie.price : 0;
             row.innerHTML = `
                 <td>#${booking.id}</td>
                 <td>User ${booking.user_id}</td>
                 <td>Movie ${booking.movie_id}</td>
-                <td>${formatCurrency(booking.total_price)}</td>
+                <td>${formatCurrency(currentPrice * booking.total_seats)}</td>
                 <td><span class="status-badge status-${booking.status}">${getStatusLabel(booking.status)}</span></td>
             `;
             tbody.appendChild(row);

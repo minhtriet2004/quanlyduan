@@ -57,6 +57,16 @@
             </div>
             <div class="form-row">
                 <div class="form-group">
+                    <label>Đạo Diễn</label>
+                    <input type="text" id="movie-director" placeholder="VD: Steven Spielberg">
+                </div>
+                <div class="form-group">
+                    <label>Đánh Giá (sao)</label>
+                    <input type="number" id="movie-rating" placeholder="VD: 8.5" min="0" max="10" step="0.1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
                     <label>Ngày Phát Hành *</label>
                     <input type="date" id="movie-release-date" required>
                 </div>
@@ -84,6 +94,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary modal-close-btn">Hủy</button>
                 <button type="submit" class="btn btn-primary">Lưu</button>
+                <small style="position: absolute; left: 15px; font-size: 11px; color: #999;">💡 Nhấn Enter để xác nhận</small>
             </div>
         </form>
     </div>

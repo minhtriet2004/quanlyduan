@@ -94,8 +94,16 @@
         const year = releaseDate.getFullYear();
         document.getElementById('release').textContent = `${day}-${month}-${year}`;
 
-        // Get ticket price from showing or use default
-        ticketPrice = currentMovie.price || 12000;
+        // Get ticket price from movies table
+        let price = parseFloat(currentMovie.price);
+        
+        if (!price || price === 0) {
+            ticketPrice = 12000; // default price if not set
+            console.log('Price is 0 or null, using default price:', ticketPrice);
+        } else {
+            ticketPrice = price;
+            console.log('Using movie price from database:', ticketPrice);
+        }
         updateTotalPrice();
     }
 
@@ -104,9 +112,23 @@
     }
 
     function updateTotalPrice() {
-        const quantity = parseInt(document.getElementById('quantity').value);
+        const quantityElement = document.getElementById('quantity');
+        if (!quantityElement) {
+            console.error('quantity element not found');
+            return;
+        }
+        
+        const quantity = parseInt(quantityElement.value) || 1;
         const total = quantity * ticketPrice;
-        document.getElementById('totalPrice').textContent = total.toLocaleString('vi-VN');
+        
+        const formattedPrice = new Intl.NumberFormat('vi-VN', { 
+            style: 'currency', 
+            currency: 'VND',
+            minimumFractionDigits: 0 
+        }).format(total);
+        
+        console.log('Updating total price:', { quantity, ticketPrice, total, formatted: formattedPrice });
+        document.getElementById('totalPrice').textContent = formattedPrice;
     }
 
     function goToChooseSeat() {

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập / Đăng ký</title>
+    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/notification.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h1 class="auth-logo">🎬 RẠP PHIM</h1>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form active">
+                <h2>Đăng Nhập</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="login-username">Tên đăng nhập / Email</label>
+                        <input type="text" id="login-username" name="username" required placeholder="Nhập tên đăng nhập hoặc email">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Mật khẩu</label>
+                        <input type="password" id="login-password" name="password" required placeholder="Nhập mật khẩu">
+                    </div>
+                    <button type="submit" class="btn-submit">Đăng Nhập</button>
+                </form>
+                <p class="auth-switch">
+                    Chưa có tài khoản? 
+                    <a href="#" onclick="switchForm('register')">Đăng ký ngay</a>
+                </p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="auth-form">
+                <h2>Đăng Ký</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="register-username">Tên đăng nhập</label>
+                        <input type="text" id="register-username" name="username" required placeholder="Chọn tên đăng nhập">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" name="email" required placeholder="Nhập email">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Mật khẩu</label>
+                        <input type="password" id="register-password" name="password" required placeholder="Nhập mật khẩu">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-confirm">Xác nhận mật khẩu</label>
+                        <input type="password" id="register-confirm" name="confirm_password" required placeholder="Xác nhận mật khẩu">
+                    </div>
+                    <button type="submit" class="btn-submit">Đăng Ký</button>
+                </form>
+                <p class="auth-switch">
+                    Đã có tài khoản? 
+                    <a href="#" onclick="switchForm('login')">Đăng nhập</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Background Decoration -->
+        <div class="auth-bg">
+            <div class="bg-circle circle-1"></div>
+            <div class="bg-circle circle-2"></div>
+            <div class="bg-circle circle-3"></div>
+        </div>
+    </div>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/notification.js"></script>
+    <script>
+        function switchForm(form) {
+            document.getElementById('login-form').classList.remove('active');
+            document.getElementById('register-form').classList.remove('active');
+            document.getElementById(form + '-form').classList.add('active');
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                const response = await APIClient.login({
+                    username: username,
+                    password: password
+                });
+
+                if (response.success) {
+                    Storage.setUser(response.data.user);
+                    Storage.setToken(response.data.token);
+                    Notification.success('Đăng nhập thành công!');
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+                } else {
+                    Notification.error(response.message || 'Đăng nhập thất bại');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                Notification.error('Lỗi: ' + error.message);
+            }
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirm_password = document.getElementById('register-confirm').value;
+
+            if (password !== confirm_password) {
+                Notification.error('Mật khẩu không khớp');
+                return;
+            }
+
+            try {
+                const response = await APIClient.register({
+                    username: username,
+                    email: email,
+                    password: password
+                });
+
+                if (response.success) {
+                    Notification.success('Đăng ký thành công! Vui lòng đăng nhập');
+                    setTimeout(() => {
+                        switchForm('login');
+                        document.getElementById('loginForm').reset();
+                    }, 1500);
+                } else {
+                    Notification.error(response.message || 'Đăng ký thất bại');
+                }
+            } catch (error) {
+                console.error('Register error:', error);
+                Notification.error('Lỗi: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

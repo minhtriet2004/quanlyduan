@@ -33,6 +33,10 @@ class APIClient {
         return this.get(`movies.php?id=${id}`);
     }
 
+    static async getMovieWithShowings(id) {
+        return this.get(`movies.php?id=${id}&include_showings=1`);
+    }
+
     static async addMovie(data) {
         return this.post('movies.php', { ...data, action: 'add' });
     }
@@ -65,6 +69,14 @@ class APIClient {
         return this.post('showings.php', { id, action: 'delete' });
     }
 
+    static async updateMovieShowingsPrices(movieId, price) {
+        return this.post('showings.php', { movie_id: movieId, price, action: 'update_movie_prices' });
+    }
+
+    static async getOrCreateShowing(movieId) {
+        return this.post('showings.php', { movie_id: movieId, action: 'get_or_create' });
+    }
+
     // Bookings endpoints
     static async getBookings(userId = null, status = null) {
         let url = 'bookings.php?';
@@ -79,6 +91,14 @@ class APIClient {
 
     static async cancelBooking(bookingId) {
         return this.post('bookings.php', { booking_id: bookingId, action: 'cancel' });
+    }
+
+    static async updateBooking(data) {
+        return this.post('bookings.php', { ...data, action: 'update' });
+    }
+
+    static async deleteBooking(bookingId) {
+        return this.post('bookings.php', { id: bookingId, action: 'delete' });
     }
 
     // Seats endpoints
@@ -148,41 +168,5 @@ class APIClient {
             console.error('API POST Error:', error);
             return { success: false, message: 'Network error: ' + error.message };
         }
-    }
-}
-
-// Storage helpers
-class Storage {
-    static setUser(user) {
-        localStorage.setItem('user', JSON.stringify(user));
-    }
-
-    static getUser() {
-        const user = localStorage.getItem('user');
-        return user ? JSON.parse(user) : null;
-    }
-
-    static setAdmin(admin) {
-        localStorage.setItem('admin', JSON.stringify(admin));
-    }
-
-    static getAdmin() {
-        const admin = localStorage.getItem('admin');
-        return admin ? JSON.parse(admin) : null;
-    }
-
-    static setToken(token) {
-        localStorage.setItem('token', token);
-    }
-
-    static getToken() {
-        return localStorage.getItem('token');
-    }
-
-    static clear() {
-        localStorage.removeItem('user');
-        localStorage.removeItem('admin');
-        localStorage.removeItem('token');
-        localStorage.removeItem('adminSession');
     }
 }

@@ -11,6 +11,19 @@
     <div class="movie-container">
         <label>Bạn đang đặt vé cho phim:</label>
         <h2 id="movieName" style="color:white; margin-top:5px;"></h2>
+        
+        <!-- Movie Information Section -->
+        <div id="movieInfoSection" style="color:#00b7ff; margin-top:15px; font-size:14px; padding: 15px; background: rgba(0, 183, 255, 0.1); border-radius: 5px; display: none;">
+            <div><strong>Thể loại:</strong> <span id="movieGenre"></span></div>
+            <div><strong>Đạo diễn:</strong> <span id="movieDirector"></span></div>
+            <div><strong>Thời lượng:</strong> <span id="movieDuration"></span> phút</div>
+            <div><strong>Đánh giá:</strong> <span id="movieRating"></span>/5</div>
+            <div style="margin-top: 10px; border-top: 1px solid #00b7ff; padding-top: 10px;">
+                <div><strong>Suất chiếu:</strong> <span id="showingInfo"></span></div>
+                <div><strong>Giá vé:</strong> <span id="ticketPrice" style="color: #ffff00; font-weight: bold;"></span></div>
+            </div>
+        </div>
+        
         <p id="ticketQuantity" style="color:#00b7ff; margin-top:10px; font-size:16px;"></p>
 
         
@@ -49,12 +62,6 @@
             XÁC NHẬN ĐẶT VÉ
         </button>
 
-        <button id="clearBtn" 
-            style="padding: 12px 25px; background:#ff4e4e; border:none; border-radius:6px;
-                font-size:16px; color:white; cursor:pointer; font-weight:bold;">
-            XÓA LỰA CHỌN
-        </button>
-
     </div>
 </body>
 </html>
@@ -66,7 +73,7 @@
 <script>
     let selectedSeats = [];
     let movieId = null;
-    let showingId = null;
+    let showingId = null; // Initialize to null, will be set by getOrCreateShowing
     let currentMovie = null;
     let requiredQuantity = 0;
     let allSeats = []; // Store all seats with their info
@@ -86,6 +93,13 @@
         const params = new URLSearchParams(window.location.search);
         movieId = params.get('id');
 
+        console.log('>>> URL params:', window.location.search);
+        console.log('>>> Extracted movieId:', movieId);
+
+        // IMPORTANT: Reset showingId when loading new movie
+        showingId = null;
+        console.log('>>> Reset showingId to null');
+
         if (!movieId) {
             Notification.error('Không tìm thấy phim');
             setTimeout(() => window.location.href = 'index.html', 1500);
@@ -103,15 +117,19 @@
         }
 
         try {
-            const response = await APIClient.getMovieById(movieId);
+            // Load movie with showings from database
+            const response = await APIClient.getMovieWithShowings(movieId);
             if (response && response.success) {
                 currentMovie = response.data.movie;
                 document.getElementById('movieName').textContent = currentMovie.title || 'Không xác định';
                 document.getElementById('ticketQuantity').textContent = `Bạn cần chọn ${requiredQuantity} ghế`;
                 document.getElementById('maxCount').textContent = requiredQuantity;
                 
-                // Get first showing for this movie
-                await getFirstAvailableShowing();
+                // Display movie information from database
+                displayMovieInfo(currentMovie);
+                
+                // Get first showing for this movie with details
+                await getFirstAvailableShowingWithDetails();
                 
                 // Load seats from database
                 await loadSeatsFromDatabase();
@@ -128,37 +146,116 @@
         }
     }
 
-    async function getFirstAvailableShowing() {
+    function displayMovieInfo(movie) {
+        // Display movie details in the info section
+        const infoSection = document.getElementById('movieInfoSection');
+        if (movie) {
+            document.getElementById('movieGenre').textContent = movie.genre || 'N/A';
+            document.getElementById('movieDirector').textContent = movie.director || 'N/A';
+            document.getElementById('movieDuration').textContent = movie.duration || 'N/A';
+            document.getElementById('movieRating').textContent = movie.rating || 'N/A';
+            infoSection.style.display = 'block';
+        }
+    }
+
+    async function getFirstAvailableShowingWithDetails() {
         try {
-            // Try to get showings for this movie
-            const response = await APIClient.getShowings();
+            // First, ensure showing exists for this movie
+            console.log('>>> Calling getOrCreateShowing for movieId:', movieId);
+            const getOrCreateRes = await APIClient.getOrCreateShowing(movieId);
+            console.log('>>> getOrCreateShowing response:', getOrCreateRes);
+            
+            if (!getOrCreateRes || !getOrCreateRes.success) {
+                console.warn('Could not get or create showing, keeping default showing_id=1');
+                console.warn('Response was:', getOrCreateRes);
+                document.getElementById('showingInfo').textContent = 'Mặc định';
+                document.getElementById('ticketPrice').textContent = 'N/A';
+                return;
+            }
+            
+            // Use the showing_id from get_or_create
+            if (!getOrCreateRes.data || !getOrCreateRes.data.showing_id) {
+                console.error('Response missing showing_id!', getOrCreateRes);
+                return;
+            }
+            
+            showingId = parseInt(getOrCreateRes.data.showing_id);
+            console.log('>>> Setting showingId to:', showingId, 'type:', typeof showingId);
+            
+            if (!showingId || isNaN(showingId)) {
+                console.error('showingId is invalid after parsing:', getOrCreateRes.data.showing_id);
+                return;
+            }
+            
+            // Get showings for this movie to get time info
+            const response = await APIClient.getShowings(movieId);
             
             if (!response || !response.success) {
-                console.warn('Could not load showings, using default showing_id=1');
-                showingId = 1;
+                console.warn('Could not load showings details, using default time');
+                document.getElementById('showingInfo').textContent = 'Hôm nay';
+                document.getElementById('ticketPrice').textContent = 'N/A';
                 return;
             }
             
             const showings = response.data.showings || [];
             
             if (showings.length > 0) {
-                // Use first available showing
-                showingId = showings[0].id;
-                console.log('Using showing ID:', showingId);
+                // Find the showing we just created/retrieved
+                const currentShowing = showings.find(s => s.id == showingId) || showings[0];
+                
+                // Format and display showing info
+                const showingDate = currentShowing.showing_date || '';
+                const showingTime = currentShowing.showing_time || '';
+                
+                // Format date from YYYY-MM-DD to DD/MM/YYYY
+                let formattedDate = showingDate;
+                if (showingDate) {
+                    const dateParts = showingDate.split('-');
+                    if (dateParts.length === 3) {
+                        formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                    }
+                }
+                
+                // Format time from HH:MM:SS to HH:MM
+                let formattedTime = showingTime;
+                if (showingTime) {
+                    formattedTime = showingTime.substring(0, 5);
+                }
+                
+                document.getElementById('showingInfo').textContent = `${formattedDate} lúc ${formattedTime}`;
+                
+                // Get price from the movie object
+                if (currentMovie && currentMovie.price) {
+                    const price = parseFloat(currentMovie.price);
+                    document.getElementById('ticketPrice').textContent = `${formatCurrency(price)}/vé`;
+                    console.log('Using movie price from database:', price);
+                } else {
+                    document.getElementById('ticketPrice').textContent = 'N/A';
+                    console.warn('Movie price not available');
+                }
             } else {
-                console.warn('No showings found, using default showing_id=1');
-                showingId = 1;
+                console.warn('No showings found');
+                document.getElementById('showingInfo').textContent = 'Hôm nay';
+                document.getElementById('ticketPrice').textContent = 'N/A';
             }
         } catch (error) {
             console.error('Error getting showing:', error);
-            showingId = 1;
+            console.warn('Keeping default showing_id=1');
         }
+    }
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('vi-VN', { 
+            style: 'currency', 
+            currency: 'VND',
+            minimumFractionDigits: 0 
+        }).format(amount);
     }
 
     async function loadSeatsFromDatabase() {
         try {
             // Get seats from database
-            console.log('Loading seats for showing_id:', showingId);
+            console.log('Loading seats for showing_id:', showingId, 'movieId:', movieId);
             const response = await APIClient.getSeats(showingId);
             
             console.log('Seats response:', response);
@@ -173,8 +270,10 @@
             console.log('Total seats loaded:', allSeats.length);
             
             if (allSeats.length === 0) {
-                console.warn('No seats found! Creating fallback seats...');
+                console.warn('No seats found! Creating fallback seats for movieId:', movieId);
                 createFallbackSeats();
+                // Wait for fallback seats to be marked
+                await loadBookedSeatsForFallback();
                 return;
             }
             
@@ -188,7 +287,18 @@
 
     function createFallbackSeats() {
         // Create fallback seats if database is empty
-        console.log('Creating fallback seats for demo purposes...');
+        // Each movie gets its own set of fallback seats stored in sessionStorage
+        const fallbackKey = `fallback_seats_movie_${movieId}_showing_${showingId}`;
+        
+        // Check if we already created fallback for this movie+showing
+        const cached = sessionStorage.getItem(fallbackKey);
+        if (cached) {
+            console.log('Using cached fallback seats for movieId:', movieId, 'showing:', showingId);
+            allSeats = JSON.parse(cached);
+            return;
+        }
+        
+        console.log('Creating new fallback seats for movieId:', movieId, 'showing:', showingId);
         allSeats = [];
         let seatId = 1;
         
@@ -202,10 +312,55 @@
                     id: seatId,
                     seat_number: rowLetter + colNumber,
                     is_booked: false,
-                    showing_id: showingId
+                    showing_id: showingId,
+                    movie_id: movieId
                 });
                 seatId++;
             }
+        }
+        
+        // Cache fallback seats in sessionStorage
+        sessionStorage.setItem(fallbackKey, JSON.stringify(allSeats));
+    }
+
+    async function loadBookedSeatsForFallback() {
+        // Fetch all bookings for this movie to mark booked seats in fallback mode
+        try {
+            const bookingsRes = await APIClient.getBookings();
+            if (bookingsRes.success) {
+                const allBookings = bookingsRes.data.bookings || [];
+                
+                // Filter: Only count confirmed/pending bookings for current showing
+                // Do NOT filter by movieId because we're in fallback mode - different movie has different showingId
+                const showingBookings = allBookings.filter(b => {
+                    return b.showing_id == showingId && (b.status === 'pending' || b.status === 'confirmed');
+                });
+                
+                // Get all booked seat numbers for this showing
+                const bookedSeatNumbers = new Set();
+                showingBookings.forEach(booking => {
+                    if (booking.seat_numbers && Array.isArray(booking.seat_numbers)) {
+                        booking.seat_numbers.forEach(seatNum => {
+                            bookedSeatNumbers.add(String(seatNum).trim());
+                        });
+                    }
+                });
+                
+                console.log(`Showing ${showingId}: Found ${showingBookings.length} bookings, ${bookedSeatNumbers.size} booked seats:`, Array.from(bookedSeatNumbers));
+                
+                // Mark booked seats in fallback
+                allSeats.forEach(seat => {
+                    if (bookedSeatNumbers.has(String(seat.seat_number).trim())) {
+                        seat.is_booked = true;
+                    }
+                });
+                
+                console.log('Marked booked seats for fallback:', Array.from(bookedSeatNumbers));
+                // Update cache
+                sessionStorage.setItem(`fallback_seats_movie_${movieId}_showing_${showingId}`, JSON.stringify(allSeats));
+            }
+        } catch (error) {
+            console.error('Error loading booked seats for fallback:', error);
         }
         
         renderSeats();
@@ -248,7 +403,10 @@
                 seatDiv.dataset.id = seat.id;
                 seatDiv.dataset.number = seat.seat_number;
 
-                if (seat.is_booked) {
+                // Convert is_booked to boolean (handle string "0"/"1" from database)
+                const isBooked = seat.is_booked === true || seat.is_booked === '1' || parseInt(seat.is_booked) === 1;
+
+                if (isBooked) {
                     seatDiv.classList.add('occupied');
                 }
 
@@ -257,7 +415,7 @@
                 seatDiv.style.display = 'flex';
                 seatDiv.style.alignItems = 'center';
                 seatDiv.style.justifyContent = 'center';
-                seatDiv.style.cursor = seat.is_booked ? 'not-allowed' : 'pointer';
+                seatDiv.style.cursor = isBooked ? 'not-allowed' : 'pointer';
 
                 rowDiv.appendChild(seatDiv);
             }
@@ -317,7 +475,6 @@
 
     function setupButtons() {
         document.getElementById('confirmBtn').addEventListener('click', confirmBooking);
-        document.getElementById('clearBtn').addEventListener('click', clearSelection);
         
         // Disable confirm button initially
         document.getElementById('confirmBtn').disabled = true;
@@ -325,16 +482,13 @@
         document.getElementById('confirmBtn').style.cursor = 'not-allowed';
     }
 
-    function clearSelection() {
-        document.querySelectorAll('.seat.selected').forEach(seat => {
-            seat.classList.remove('selected');
-        });
-        updateSelectedSeats();
-    }
-
     async function confirmBooking() {
+        console.log('>>> CONFIRM BOOKING CLICKED');
+        console.log('>>> Current showingId:', showingId, 'type:', typeof showingId);
+        console.log('>>> Current movieId:', movieId, 'type:', typeof movieId);
+        
         const user = Storage.getUser();
-        if (!user) {
+        if (!user || !user.id) {
             Notification.error('Vui lòng đăng nhập để đặt vé');
             setTimeout(() => window.location.href = 'login.html', 1500);
             return;
@@ -350,27 +504,62 @@
             return;
         }
 
-        // Ensure showing_id is set
-        if (!showingId) {
-            Notification.error('Không tìm thấy thông tin suất chiếu');
+        // Validate showing_id
+        if (showingId === null || showingId === undefined || showingId === 0 || isNaN(showingId)) {
+            console.error('showingId is invalid:', showingId);
+            Notification.error('Không tìm thấy suất chiếu. Vui lòng tải lại trang');
+            return;
+        }
+
+        // Validate seats
+        if (!selectedSeats || selectedSeats.length === 0) {
+            Notification.error('Vui lòng chọn ghế');
             return;
         }
 
         // Create booking with actual seat IDs
         try {
+            const seatIds = selectedSeats.map(s => parseInt(s.id)); // Ensure IDs are numbers
+            
             const bookingData = {
-                user_id: parseInt(user.id),
+                user_id: parseInt(user.user_id || user.id),
                 movie_id: parseInt(movieId),
                 showing_id: parseInt(showingId),
-                seats: selectedSeats.map(s => parseInt(s.id)),
+                seats: seatIds, // Use actual seat IDs as numbers
                 payment_method: 'cash'
             };
-
-            console.log('Booking data:', bookingData);
-
+            
+            // Validate all fields before sending
+            console.log('=== User Info ===');
+            console.log('user object:', user);
+            console.log('user.user_id:', user.user_id, typeof user.user_id);
+            console.log('user.id:', user.id, typeof user.id);
+            console.log('=== Booking Data ===');
+            console.log('user_id:', bookingData.user_id, typeof bookingData.user_id);
+            console.log('movie_id:', bookingData.movie_id, typeof bookingData.movie_id);
+            console.log('showing_id:', bookingData.showing_id, typeof bookingData.showing_id);
+            console.log('seats:', bookingData.seats, 'count:', bookingData.seats.length);
+            console.log('payment_method:', bookingData.payment_method);
+            
+            // Check for invalid values
+            if (!bookingData.user_id) {
+                Notification.error('Lỗi: Không tìm thấy thông tin người dùng');
+                return;
+            }
+            if (!bookingData.movie_id) {
+                Notification.error('Lỗi: Không tìm thấy thông tin phim');
+                return;
+            }
+            if (!bookingData.showing_id) {
+                Notification.error('Lỗi: Không tìm thấy suất chiếu (ID: ' + showingId + ')');
+                return;
+            }
+            if (bookingData.seats.length === 0) {
+                Notification.error('Lỗi: Vui lòng chọn ghế');
+                return;
+            }
+            
             const response = await BookingsClient.createBooking(bookingData);
-
-            console.log('Booking response:', response);
 
             if (response.success) {
                 Notification.success('Đặt vé thành công! Mã đặt vé: #' + response.data.booking_id);
@@ -379,6 +568,7 @@
                     window.location.href = 'bookings-history.html';
                 }, 1500);
             } else {
+                console.error('Booking error response:', response);
                 Notification.error(response.message || 'Lỗi khi đặt vé');
             }
         } catch (error) {

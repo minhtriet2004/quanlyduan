@@ -102,7 +102,7 @@ body::before {
 }
 
 .seat.selected {
-  background-color: #6feaf6;
+  background-color: #06e0f4;
 }
 
 .seat.occupied {

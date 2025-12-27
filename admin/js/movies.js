@@ -19,12 +19,13 @@ async function loadMovies() {
 
         movies.forEach(movie => {
             const row = document.createElement('tr');
+            const price = movie.price ? new Intl.NumberFormat('vi-VN').format(movie.price) : '-';
             row.innerHTML = `
                 <td>#${movie.id}</td>
                 <td>${movie.title}</td>
                 <td>${movie.genre || '-'}</td>
                 <td>${movie.duration || 0} phút</td>
-                <td>${movie.rating || 0}</td>
+                <td>${price}</td>
                 <td>${formatDate(movie.release_date)}</td>
                 <td><span class="status-badge status-${movie.status}">${getStatusLabel(movie.status)}</span></td>
                 <td>
@@ -58,37 +59,88 @@ function openMovieModal() {
     document.getElementById('movie-poster').value = '';
     document.getElementById('movie-modal').style.display = 'block';
     document.getElementById('movie-form').dataset.movieId = '';
+    
+    // Setup Enter key handler for form submission
+    setupFormEnterKey();
 }
 
 async function editMovie(id) {
+    console.log('editMovie called with id:', id);
     try {
-        const response = await APIClient.getMovieById(id);
+        // Try to get movie with showings first, fallback to getMovieById if it fails
+        let response;
+        try {
+            response = await APIClient.getMovieWithShowings(id);
+            console.log('getMovieWithShowings response:', response);
+        } catch (err) {
+            console.warn('getMovieWithShowings failed, falling back to getMovieById:', err);
+            response = await APIClient.getMovieById(id);
+            console.log('getMovieById response:', response);
+        }
         
         if (!response.success) {
-            console.error('Failed to load movie:', response.message);
+            console.error('Failed to load movie:', response);
+            showNotification('Lỗi tải phim: ' + (response.message || 'Không tải được dữ liệu'), 'error');
             return;
         }
 
         const movie = response.data.movie;
-        document.getElementById('movie-modal-title').textContent = 'Sửa Phim';
-        document.getElementById('movie-title').value = movie.title || '';
-        document.getElementById('movie-genre').value = movie.genre || '';
-        document.getElementById('movie-duration').value = movie.duration || '';
-        document.getElementById('movie-release-date').value = movie.release_date || '';
-        document.getElementById('movie-description').value = movie.description || '';
-        document.getElementById('movie-poster').value = movie.poster_image || '';
-        document.getElementById('movie-status').value = movie.status || 'showing';
+        console.log('Movie loaded:', movie);
         
-        // Show existing poster preview
-        if (movie.poster_image) {
-            const preview = document.getElementById('poster-preview');
-            preview.innerHTML = `<img src="${movie.poster_image}" alt="Preview">`;
+        if (!movie) {
+            showNotification('Lỗi: Dữ liệu phim không hợp lệ', 'error');
+            return;
         }
         
-        document.getElementById('movie-form').dataset.movieId = id;
-        document.getElementById('movie-modal').style.display = 'block';
+        document.getElementById('movie-modal-title').textContent = 'Sửa Phim';
+        
+        // Set form values with null checks
+        const setFieldValue = (elementId, value) => {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.value = value || '';
+            } else {
+                console.warn(`Element ${elementId} not found`);
+            }
+        };
+        
+        setFieldValue('movie-title', movie.title);
+        setFieldValue('movie-genre', movie.genre);
+        setFieldValue('movie-duration', movie.duration);
+        setFieldValue('movie-release-date', movie.release_date);
+        setFieldValue('movie-description', movie.description);
+        setFieldValue('movie-poster', movie.poster_image);
+        setFieldValue('movie-price', movie.price);
+        setFieldValue('movie-director', movie.director);
+        setFieldValue('movie-rating', movie.rating);
+        setFieldValue('movie-status', movie.status || 'showing');
+        
+        // Show existing poster preview
+        const posterPreview = document.getElementById('poster-preview');
+        if (posterPreview) {
+            if (movie.poster_image) {
+                posterPreview.innerHTML = `<img src="${movie.poster_image}" alt="Preview" style="max-width: 100px; max-height: 100px;">`;
+            } else {
+                posterPreview.innerHTML = '';
+            }
+        }
+        
+        const movieForm = document.getElementById('movie-form');
+        if (movieForm) {
+            movieForm.dataset.movieId = id;
+        }
+        
+        const movieModal = document.getElementById('movie-modal');
+        if (movieModal) {
+            movieModal.style.display = 'block';
+        } else {
+            console.error('movie-modal element not found');
+            showNotification('Lỗi: Modal không tồn tại', 'error');
+            return;
+        }
     } catch (error) {
         console.error('Error editing movie:', error);
+        showNotification('Lỗi khi sửa phim: ' + error.message, 'error');
     }
 }
 
@@ -105,7 +157,11 @@ async function saveMovie(e) {
             const formData = new FormData();
             formData.append('image', fileInput.files[0]);
             
-            const uploadResponse = await fetch('/api/upload.php', {
+            // Detect API base URL - works with or without /quanlyduan in path
+            const currentPath = window.location.pathname;
+            const uploadUrl = currentPath.includes('/quanlyduan/') ? '/quanlyduan/api/upload.php' : '/api/upload.php';
+            
+            const uploadResponse = await fetch(uploadUrl, {
                 method: 'POST',
                 body: formData
             });
@@ -125,14 +181,19 @@ async function saveMovie(e) {
     }
 
     const movieData = {
-        title: document.getElementById('movie-title').value,
-        genre: document.getElementById('movie-genre').value,
-        duration: parseInt(document.getElementById('movie-duration').value),
-        release_date: document.getElementById('movie-release-date').value,
-        description: document.getElementById('movie-description').value,
+        title: document.getElementById('movie-title')?.value || '',
+        genre: document.getElementById('movie-genre')?.value || '',
+        duration: parseInt(document.getElementById('movie-duration')?.value) || 0,
+        release_date: document.getElementById('movie-release-date')?.value || '',
+        description: document.getElementById('movie-description')?.value || '',
         poster_image: posterImage,
-        status: document.getElementById('movie-status').value
+        price: parseFloat(document.getElementById('movie-price')?.value) || 0,
+        director: document.getElementById('movie-director')?.value || '',
+        rating: parseFloat(document.getElementById('movie-rating')?.value) || 0,
+        status: document.getElementById('movie-status')?.value || 'showing'
     };
+
+    console.log('Movie data to save:', movieData);
 
     try {
         let response;
@@ -141,11 +202,19 @@ async function saveMovie(e) {
             response = await APIClient.updateMovie(movieData);
             if (response.success) {
                 showNotification('Cập nhật phim thành công!', 'success');
+            } else {
+                console.error('API Error:', response);
+                showNotification('Lỗi: ' + (response.message || 'Lỗi cập nhật phim'), 'error');
+                return;
             }
         } else {
             response = await APIClient.addMovie(movieData);
             if (response.success) {
                 showNotification('Thêm phim thành công!', 'success');
+            } else {
+                console.error('API Error:', response);
+                showNotification('Lỗi: ' + (response.message || 'Lỗi thêm phim'), 'error');
+                return;
             }
         }
 
@@ -153,12 +222,10 @@ async function saveMovie(e) {
             closeModal();
             loadMovies();
             loadDashboard();
-        } else {
-            showNotification(response.message || 'Lỗi!', 'error');
         }
     } catch (error) {
         console.error('Error saving movie:', error);
-        showNotification('Lỗi khi lưu phim!', 'error');
+        showNotification('Lỗi khi lưu phim: ' + error.message, 'error');
     }
 }
 
@@ -192,5 +259,30 @@ if (document.getElementById('movie-poster-file')) {
             };
             reader.readAsDataURL(file);
         }
+    });
+}
+
+// Setup Enter key submission for forms
+function setupFormEnterKey() {
+    const form = document.getElementById('movie-form');
+    if (!form) return;
+    
+    // Get all input and select elements (not textarea)
+    const inputs = form.querySelectorAll('input:not([type="button"]):not([type="submit"]), select');
+    
+    inputs.forEach(input => {
+        input.addEventListener('keypress', function(e) {
+            // Check if Enter key was pressed
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                // Submit the form
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.click();
+                } else {
+                    form.dispatchEvent(new Event('submit'));
+                }
+            }
+        });
     });
 }

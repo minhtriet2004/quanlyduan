@@ -41,6 +41,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  gap: 30px;
 }
 
 .logo {
@@ -53,6 +55,111 @@ body {
 .nav {
   display: flex;
   gap: 30px;
+  flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+}
+
+/* User Profile Section - Shopee Style */
+.user-section {
+  position: relative;
+}
+
+.user-profile-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.user-profile-wrapper:hover {
+  background: rgba(229, 9, 20, 0.08);
+}
+
+.user-avatar {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary-red) 0%, #f40612 100%);
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(229, 9, 20, 0.25);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.username {
+  color: var(--text-white);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  max-width: 80px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-status {
+  color: var(--text-gray);
+  font-size: 11px;
+  letter-spacing: 0.2px;
+}
+
+/* Cart Icon */
+.cart-icon {
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+}
+
+.cart-icon:hover {
+  background: rgba(229, 9, 20, 0.1);
+  transform: scale(1.08);
+}
+
+/* Profile Dropdown - Xóa */
+/* Removed - Simplified to just user info + icons */
+
+/* User Menu Links */
+.user-menu-link {
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text-white);
+}
+
+.user-menu-link:hover {
+  background: rgba(229, 9, 20, 0.15);
+  transform: scale(1.08);
 }
 
 .nav-link {
@@ -79,18 +186,28 @@ body {
 }
 
 .btn-login {
-  background-color: var(--primary-red);
+  background: linear-gradient(135deg, var(--primary-red) 0%, #f40612 100%);
   color: var(--text-white);
   border: none;
-  padding: 10px 25px;
-  border-radius: 5px;
-  font-size: 16px;
+  padding: 11px 28px;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+  letter-spacing: 0.5px;
 }
 
 .btn-login:hover {
-  background-color: var(--hover-red);
+  background: linear-gradient(135deg, #f40612 0%, var(--primary-red) 100%);
+  box-shadow: 0 6px 16px rgba(229, 9, 20, 0.5);
+  transform: translateY(-2px);
+}
+
+.btn-login:active {
+  transform: translateY(0);
 }
 
 /* Hero Section */
@@ -422,34 +539,48 @@ html {
   position: absolute;
   right: 0;
   top: 100%;
-  background-color: var(--card-bg);
-  border: 1px solid rgba(229, 9, 20, 0.3);
-  border-radius: 8px;
-  min-width: 280px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  margin-top: 10px;
+  background: linear-gradient(135deg, var(--card-bg) 0%, #252d45 100%);
+  border: 1px solid rgba(229, 9, 20, 0.4);
+  border-radius: 12px;
+  min-width: 300px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(229, 9, 20, 0.15);
+  margin-top: 12px;
   z-index: 1001;
   overflow: hidden;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .profile-header {
-  padding: 15px;
+  padding: 20px 16px;
   border-bottom: 1px solid rgba(229, 9, 20, 0.2);
   display: flex;
-  gap: 12px;
+  gap: 14px;
   align-items: center;
+  background: linear-gradient(135deg, rgba(229, 9, 20, 0.1) 0%, rgba(229, 9, 20, 0.05) 100%);
 }
 
 .profile-avatar {
-  font-size: 32px;
-  width: 50px;
-  height: 50px;
+  font-size: 36px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--primary-red);
+  background: linear-gradient(135deg, var(--primary-red) 0%, #f40612 100%);
   border-radius: 50%;
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
 }
 
 .profile-info {
@@ -458,27 +589,47 @@ html {
 }
 
 .profile-name {
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-white);
   margin: 0;
   word-break: break-word;
+  font-size: 15px;
+  letter-spacing: 0.3px;
 }
 
 .profile-email {
   font-size: 12px;
   color: var(--text-gray);
-  margin: 3px 0 0 0;
+  margin: 4px 0 0 0;
   word-break: break-word;
+  letter-spacing: 0.2px;
 }
 
 .profile-link {
-  display: block;
-  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
   color: var(--text-white);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 15px;
   border-bottom: 1px solid rgba(229, 9, 20, 0.1);
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-link::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background-color: var(--primary-red);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 0.3s ease;
 }
 
 .profile-link:last-child {
@@ -486,16 +637,12 @@ html {
 }
 
 .profile-link:hover {
-  background-color: rgba(229, 9, 20, 0.2);
+  background-color: rgba(229, 9, 20, 0.15);
   color: var(--primary-red);
+  padding-left: 20px;
 }
 
-/* Header relative positioning for profile menu */
-.header-content {
-  position: relative;
-}
-
-.btn-login {
-  position: relative;
+.profile-link:hover::before {
+  transform: scaleY(1);
 }
 

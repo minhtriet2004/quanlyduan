@@ -97,6 +97,7 @@
     <script src="/js/notification.js"></script>
     <script>
         let allBookings = [];
+        let allMovies = [];
         let currentFilter = 'all';
 
         // Check if logged in
@@ -109,23 +110,22 @@
             }
             
             updateAuthUI();
-            loadBookings();
+            loadData();
             setupFilterButtons();
         });
 
-        function updateAuthUI() {
-            const user = Storage.getUser();
-            const authBtn = document.getElementById('auth-btn');
-            const profileMenu = document.getElementById('profile-menu');
-            
-            if (user) {
-                authBtn.style.display = 'none';
-                profileMenu.style.display = 'block';
-                document.getElementById('profile-name').textContent = user.username || user.name || 'User';
-                document.getElementById('profile-email').textContent = user.email || '';
-            } else {
-                authBtn.style.display = 'block';
-                profileMenu.style.display = 'none';
+        async function loadData() {
+            try {
+                // Load movies first
+                const moviesRes = await APIClient.getMovies();
+                if (moviesRes.success) {
+                    allMovies = moviesRes.data.movies || [];
+                }
+                
+                // Then load bookings
+                await loadBookings();
+            } catch (error) {
+                console.error('Error loading data:', error);
             }
         }
 
@@ -150,6 +150,22 @@
             }
         }
 
+        function updateAuthUI() {
+            const user = Storage.getUser();
+            const authBtn = document.getElementById('auth-btn');
+            const profileMenu = document.getElementById('profile-menu');
+            
+            if (user) {
+                authBtn.style.display = 'none';
+                profileMenu.style.display = 'block';
+                document.getElementById('profile-name').textContent = user.username || user.name || 'User';
+                document.getElementById('profile-email').textContent = user.email || '';
+            } else {
+                authBtn.style.display = 'block';
+                profileMenu.style.display = 'none';
+            }
+        }
+
         function displayBookings() {
             const container = document.getElementById('bookings-list');
             
@@ -162,7 +178,13 @@
                 return;
             }
 
-            container.innerHTML = filteredBookings.map(booking => `
+            container.innerHTML = filteredBookings.map(booking => {
+                // Get current movie price from movies list
+                const movie = allMovies.find(m => m.id == booking.movie_id);
+                const currentPrice = movie ? movie.price : 0;
+                const currentTotal = currentPrice * booking.total_seats;
+                
+                return `
                 <div class="booking-card">
                     <div class="booking-poster">
                         <img src="${booking.poster_image || '/img/default-poster.jpg'}" alt="${booking.title}">
@@ -172,7 +194,8 @@
                         <div class="booking-info">
                             <p><strong>Mã đặt vé:</strong> #${booking.id}</p>
                             <p><strong>Ghế:</strong> ${booking.seat_numbers ? booking.seat_numbers.join(', ') : booking.total_seats + ' ghế'}</p>
-                            <p><strong>Tổng tiền:</strong> <span class="price">${formatPrice(booking.total_price)}</span></p>
+                            <p><strong>Giá khi đặt:</strong> <span class="price">${formatPrice(booking.total_price)}</span></p>
+                            <p><strong>Giá hiện tại:</strong> <span class="price" style="color: #ffff00;">${formatPrice(currentTotal)}</span></p>
                             <p><strong>Ngày đặt:</strong> ${formatDateTime(booking.booking_date)}</p>
                             <p><strong>Trạng thái:</strong> <span class="status ${booking.status}">${getStatusText(booking.status)}</span></p>
                         </div>
@@ -184,7 +207,7 @@
                         </div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function setupFilterButtons() {
@@ -228,8 +251,12 @@
         function viewBookingDetails(bookingId) {
             const booking = allBookings.find(b => b.id === bookingId);
             if (booking) {
+                const movie = allMovies.find(m => m.id == booking.movie_id);
+                const currentPrice = movie ? movie.price : 0;
+                const currentTotal = currentPrice * booking.total_seats;
+                
                 const seatInfo = booking.seat_numbers ? booking.seat_numbers.join(', ') : booking.total_seats + ' ghế';
-                const details = `Chi tiết đặt vé #${booking.id}\n\nPhim: ${booking.title}\nGhế: ${seatInfo}\nTổng tiền: ${formatPrice(booking.total_price)}\nTrạng thái: ${getStatusText(booking.status)}`;
+                const details = `Chi tiết đặt vé #${booking.id}\n\nPhim: ${booking.title}\nGhế: ${seatInfo}\nGiá khi đặt: ${formatPrice(booking.total_price)}\nGiá hiện tại: ${formatPrice(currentTotal)}\nTrạng thái: ${getStatusText(booking.status)}`;
                 Notification.info(details);
             }
         }
