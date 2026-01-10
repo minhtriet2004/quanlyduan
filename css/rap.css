@@ -61,7 +61,7 @@ body {
 .city-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 25px;
+  gap: 15px;
   justify-content: center;
   margin-bottom: 40px;
 }
@@ -69,12 +69,26 @@ body {
 .city {
   cursor: pointer;
   font-size: 16px;
+  font-weight: 500;
   color: #cfd3ff;
+  background: #141a3a;
+  padding: 12px 28px;
+  border-radius: 25px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.city:hover {
+  background: #1b2150;
+  border-color: #ff1f1f;
+  transform: translateY(-2px);
 }
 
 .city.active {
-  color: #ff1f1f;
-  text-decoration: underline;
+  background: #ff1f1f;
+  color: #fff;
+  border-color: #ff1f1f;
+  box-shadow: 0 4px 15px rgba(255, 31, 31, 0.3);
 }
 
 /* CINEMA LIST */
@@ -86,12 +100,30 @@ body {
 
 .cinema-item {
   background: #141a3a;
-  padding: 15px 20px;
+  padding: 20px;
   border-radius: 12px;
   transition: 0.3s;
+  border-left: 4px solid #ff1f1f;
 }
 
 .cinema-item:hover {
   transform: translateY(-5px);
   background: #1b2150;
 }
+
+.cinema-name {
+  color: #ff8c8c;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.cinema-address {
+  color: #cfd3ff;
+  font-size: 14px;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.cinema-phone {
+  color: #a8aeff;
+  font-size: 14px;

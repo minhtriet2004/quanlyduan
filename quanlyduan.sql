@@ -258,6 +258,29 @@ INSERT INTO `users` (`id`, `username`, `password`, `email`, `full_name`, `phone`
 	(7, 'teiyup4993', '$2y$10$ILoXsUuZcp5lbTwtSC6SQ.laLgsdqYED.aKNx5K8wA8XytW9MEsQa', 'admin@cinema.vn', 'Teiyup', '0909090909', 'user', '2025-12-23 05:54:22', '2025-12-23 05:54:22'),
 	(8, 'TeiyupTeiyup@gmail.com', '$2y$10$y1hFDHxdfozDlH2Q6TeaGeiqOI08pJVnbFr3IOTiUARHaALRimhYK', 'TeiyupTeiyup@Gmail.com', 'Teiyup333', '0909090909', 'user', '2025-12-26 06:59:14', '2025-12-26 06:59:14');
 
+-- Dumping structure for table quanlyduan.cinemas
+CREATE TABLE IF NOT EXISTS `cinemas` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `city` varchar(50) NOT NULL,
+  `address` text NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_city` (`city`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Dumping data for table quanlyduan.cinemas: ~7 rows (approximately)
+INSERT INTO `cinemas` (`id`, `name`, `city`, `address`, `phone`, `created_at`, `updated_at`) VALUES
+	(1, 'Rạp Hồ Chí Minh - Tân Bình', 'hcm', '123 Đường Thái Văn Lung, Phường Tân Bình, TP.HCM', '(028) 3847-1234', '2025-12-27 07:00:00', '2025-12-27 07:00:00'),
+	(2, 'Rạp Hồ Chí Minh - Quận 1', 'hcm', '456 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM', '(028) 3821-5678', '2025-12-27 07:00:00', '2025-12-27 07:00:00'),
+	(3, 'Rạp Hồ Chí Minh - Bình Thạnh', 'hcm', '789 Đường Pasteur, Phường 6, Quận 3, TP.HCM', '(028) 3932-9012', '2025-12-27 07:00:00', '2025-12-27 07:00:00'),
+	(4, 'Rạp Hà Nội - Hoàn Kiếm', 'hn', '321 Đường Trang Tien, Phường Trang Tien, Quận Hoàn Kiếm, Hà Nội', '(024) 3933-4567', '2025-12-27 07:00:00', '2025-12-27 07:00:00'),
+	(5, 'Rạp Hà Nội - Thanh Xuân', 'hn', '654 Đường Giải Phóng, Phường Thanh Xuân Trung, Quận Thanh Xuân, Hà Nội', '(024) 3541-8901', '2025-12-27 07:00:00', '2025-12-27 07:00:00'),
+	(6, 'Rạp Đà Nẵng - Hải Châu', 'dn', '111 Đường Ngô Gia Tự, Phường Hải Châu 1, Quận Hải Châu, Đà Nẵng', '(0236) 3821-2345', '2025-12-27 07:00:00', '2025-12-27 07:00:00'),
+	(7, 'Rạp Cần Thơ - Ninh Kiều', 'ct', '222 Đường Hòa An, Phường An Hòa, Quận Ninh Kiều, Cần Thơ', '(0292) 3710-3456', '2025-12-27 07:00:00', '2025-12-27 07:00:00');
+
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
