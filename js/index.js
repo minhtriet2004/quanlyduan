@@ -44,7 +44,7 @@ function displayMovies(movies, status) {
         const movieCard = document.createElement('div');
         movieCard.className = 'movie-card';
         
-        const posterImg = movie.poster_image ? movie.poster_image : '/img/default-poster.jpg';
+        const posterImg = movie.poster_image ? movie.poster_image : 'img/default-poster.jpg';
         const buttonText = status === 'showing' ? 'Mua vé' : 'Đặt trước';
         const badgeHtml = status === 'coming_soon' ? '<span class="badge-coming">Sắp chiếu</span>' : '';
         
@@ -96,3 +96,19 @@ function bookTicket(movieId, movieTitle) {
 function viewMovieDetails(movieId) {
     window.location.href = `movie-details.html?id=${movieId}`;
 }
+
+// Toggle user dropdown menu
+function toggleUserDropdown() {
+    const dropdown = document.getElementById('user-dropdown');
+    dropdown.classList.toggle('show');
+}
+
+// Close dropdown when click outside
+document.addEventListener('click', (e) => {
+    const userSection = document.getElementById('user-profile');
+    const dropdown = document.getElementById('user-dropdown');
+    
+    if (userSection && !userSection.contains(e.target)) {
+        dropdown?.classList.remove('show');
+    }
+});

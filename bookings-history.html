@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lịch sử đặt vé - RAP PHIM</title>
-    <link rel="stylesheet" href="/css/bookings-history.css">
-    <link rel="stylesheet" href="/css/notification.css">
+    <link rel="stylesheet" href="css/bookings-history.css">
+    <link rel="stylesheet" href="css/notification.css">
 </head>
 <body>
     <!-- Header -->
@@ -91,10 +91,10 @@
         </div>
     </footer>
 
-    <script src="/js/api-client.js"></script>
-    <script src="/js/bookings-client.js"></script>
-    <script src="/js/storage.js"></script>
-    <script src="/js/notification.js"></script>
+    <script src="../js/api-client.js"></script>
+    <script src="../js/bookings-client.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/notification.js"></script>
     <script>
         let allBookings = [];
         let allMovies = [];
@@ -187,7 +187,7 @@
                 return `
                 <div class="booking-card">
                     <div class="booking-poster">
-                        <img src="${booking.poster_image || '/img/default-poster.jpg'}" alt="${booking.title}">
+                        <img src="${booking.poster_image || 'img/default-poster.jpg'}" alt="${booking.title}">
                     </div>
                     <div class="booking-details">
                         <h3 class="booking-title">${booking.title}</h3>

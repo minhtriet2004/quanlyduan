@@ -9,8 +9,11 @@ if ($method === 'GET') {
     // Check if getting single movie with showings by ID
     if (isset($_GET['id']) && isset($_GET['include_showings'])) {
         $id = intval($_GET['id']);
-        $query = "SELECT * FROM movies WHERE id = $id";
-        $result = $conn->query($query);
+        $stmt = $conn->prepare("SELECT * FROM movies WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
 
         if ($result->num_rows === 0) {
             sendResponse(false, 'Movie not found', null, 404);
@@ -19,11 +22,14 @@ if ($method === 'GET') {
         $movie = $result->fetch_assoc();
         
         // Get all showings for this movie
-        $showings_query = "SELECT id, showing_date, showing_time, room_number, price, available_seats, total_seats 
+        $stmt = $conn->prepare("SELECT id, showing_date, showing_time, room_number, price, available_seats, total_seats 
                           FROM showings 
-                          WHERE movie_id = $id 
-                          ORDER BY showing_date, showing_time";
-        $showings_result = $conn->query($showings_query);
+                          WHERE movie_id = ? 
+                          ORDER BY showing_date, showing_time");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $showings_result = $stmt->get_result();
+        $stmt->close();
         
         $showings = [];
         while ($showing_row = $showings_result->fetch_assoc()) {
@@ -37,8 +43,11 @@ if ($method === 'GET') {
     // Check if getting single movie by ID (without showings)
     else if (isset($_GET['id'])) {
         $id = intval($_GET['id']);
-        $query = "SELECT * FROM movies WHERE id = $id";
-        $result = $conn->query($query);
+        $stmt = $conn->prepare("SELECT * FROM movies WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
 
         if ($result->num_rows === 0) {
             sendResponse(false, 'Movie not found', null, 404);
@@ -49,19 +58,23 @@ if ($method === 'GET') {
     }
     
     // Get all movies (both showing and coming_soon)
-    $limit = $_GET['limit'] ?? 100;
-    $offset = $_GET['offset'] ?? 0;
+    $limit = intval($_GET['limit'] ?? 100);
+    $offset = intval($_GET['offset'] ?? 0);
     $today = date('Y-m-d');
     
     $query = "SELECT m.*
               FROM movies m 
               WHERE m.status != 'archived' ORDER BY 
               CASE 
-                WHEN m.release_date > '$today' THEN 0 
+                WHEN m.release_date > ? THEN 0 
                 ELSE 1 
               END, 
-              m.release_date DESC LIMIT $offset, $limit";
-    $result = $conn->query($query);
+              m.release_date DESC LIMIT ?, ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("sii", $today, $offset, $limit);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
 
     $movies = [];
     while ($row = $result->fetch_assoc()) {
@@ -106,11 +119,13 @@ else if ($method === 'POST') {
             $status = $release > $now ? 'coming_soon' : 'showing';
         }
 
-        $query = "INSERT INTO movies (title, description, poster_image, release_date, duration, genre, director, rating, price, status) 
-                  VALUES ('$title', '$description', '$poster_image', '$release_date', $duration, '$genre', '$director', $rating, $price, '$status')";
+        $stmt = $conn->prepare("INSERT INTO movies (title, description, poster_image, release_date, duration, genre, director, rating, price, status) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssissdis", $title, $description, $poster_image, $release_date, $duration, $genre, $director, $rating, $price, $status);
 
-        if ($conn->query($query)) {
+        if ($stmt->execute()) {
             $movie_id = $conn->insert_id;
+            $stmt->close();
             sendResponse(true, 'Movie added successfully', ['movie_id' => $movie_id]);
         } else {
             sendResponse(false, 'Failed to add movie: ' . $conn->error, null, 500);
@@ -142,11 +157,13 @@ else if ($method === 'POST') {
             $status = $release > $now ? 'coming_soon' : 'showing';
         }
 
-        $query = "UPDATE movies SET title = '$title', description = '$description', poster_image = '$poster_image', 
-                  release_date = '$release_date', duration = $duration, genre = '$genre', director = '$director', 
-                  rating = $rating, price = $price, status = '$status' WHERE id = $id";
+        $stmt = $conn->prepare("UPDATE movies SET title = ?, description = ?, poster_image = ?, 
+                  release_date = ?, duration = ?, genre = ?, director = ?, 
+                  rating = ?, price = ?, status = ? WHERE id = ?");
+        $stmt->bind_param("ssssissdisi", $title, $description, $poster_image, $release_date, $duration, $genre, $director, $rating, $price, $status, $id);
 
-        if ($conn->query($query)) {
+        if ($stmt->execute()) {
+            $stmt->close();
             sendResponse(true, 'Movie updated successfully');
         } else {
             sendResponse(false, 'Failed to update movie: ' . $conn->error, null, 500);
@@ -161,9 +178,11 @@ else if ($method === 'POST') {
             sendResponse(false, 'Movie ID is required', null, 400);
         }
 
-        $query = "DELETE FROM movies WHERE id = $id";
+        $stmt = $conn->prepare("DELETE FROM movies WHERE id = ?");
+        $stmt->bind_param("i", $id);
 
-        if ($conn->query($query)) {
+        if ($stmt->execute()) {
+            $stmt->close();
             sendResponse(true, 'Movie deleted successfully');
         } else {
             sendResponse(false, 'Failed to delete movie', null, 500);

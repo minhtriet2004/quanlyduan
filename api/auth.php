@@ -25,23 +25,33 @@ try {
             }
 
             // Check if username exists
-            $check = $conn->query("SELECT id FROM users WHERE username = '$username'");
+            $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $check = $stmt->get_result();
             if ($check->num_rows > 0) {
                 sendResponse(false, 'Username already exists', null, 400);
             }
+            $stmt->close();
 
             // Check if email exists
-            $check = $conn->query("SELECT id FROM users WHERE email = '$email'");
+            $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $check = $stmt->get_result();
             if ($check->num_rows > 0) {
                 sendResponse(false, 'Email already exists', null, 400);
             }
+            $stmt->close();
 
             $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-            $query = "INSERT INTO users (username, password, email, full_name, phone, role) 
-                      VALUES ('$username', '$hashed_password', '$email', '$full_name', '$phone', 'user')";
+            $stmt = $conn->prepare("INSERT INTO users (username, password, email, full_name, phone, role) 
+                      VALUES (?, ?, ?, ?, ?, 'user')");
+            $stmt->bind_param("sssss", $username, $hashed_password, $email, $full_name, $phone);
 
-            if ($conn->query($query)) {
+            if ($stmt->execute()) {
                 $user_id = $conn->insert_id;
+                $stmt->close();
                 $token = generateToken($user_id);
                 sendResponse(true, 'Registration successful', [
                     'user_id' => $user_id,
@@ -62,8 +72,11 @@ try {
                 sendResponse(false, 'Username and password are required', null, 400);
             }
 
-            $query = "SELECT * FROM users WHERE username = '$username'";
-            $result = $conn->query($query);
+            $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $stmt->close();
 
             if ($result->num_rows === 0) {
                 sendResponse(false, 'Username or password incorrect', null, 401);
@@ -94,8 +107,11 @@ try {
                 sendResponse(false, 'Username and password are required', null, 400);
             }
 
-            $query = "SELECT * FROM users WHERE username = '$username' AND role = 'admin'";
-            $result = $conn->query($query);
+            $stmt = $conn->prepare("SELECT * FROM users WHERE username = ? AND role = 'admin'");
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $stmt->close();
 
             if ($result->num_rows === 0) {
                 sendResponse(false, 'Admin username or password incorrect', null, 401);

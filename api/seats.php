@@ -12,8 +12,11 @@ if ($method === 'GET') {
     }
 
     $showing_id = intval($showing_id);
-    $query = "SELECT * FROM seats WHERE showing_id = $showing_id ORDER BY seat_number";
-    $result = $conn->query($query);
+    $stmt = $conn->prepare("SELECT * FROM seats WHERE showing_id = ? ORDER BY seat_number");
+    $stmt->bind_param("i", $showing_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stmt->close();
 
     $seats = [];
     while ($row = $result->fetch_assoc()) {
