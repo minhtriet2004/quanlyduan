@@ -16,17 +16,21 @@
                 <nav class="nav">
                     <a href="index.html" class="nav-link">Trang chủ</a>
                 </nav>
-                <button class="btn-login" id="auth-btn" onclick="handleAuthClick()">Đăng nhập</button>
-                <div class="profile-menu" id="profile-menu" style="display: none;">
-                    <div class="profile-header">
-                        <div class="profile-avatar">👤</div>
-                        <div class="profile-info">
-                            <p class="profile-name" id="profile-name"></p>
-                            <p class="profile-email" id="profile-email"></p>
+                <div class="header-actions">
+                    <button class="btn-login" id="auth-btn" onclick="handleAuthClick()" style="display: none;">Đăng nhập</button>
+                    <div class="user-section" id="user-profile" style="display: none;">
+                        <div class="user-profile-wrapper" onclick="toggleUserDropdown()">
+                            <div class="user-avatar">👤</div>
+                            <div class="user-info">
+                                <span class="username" id="username-display">User</span>
+                                <span class="user-email" id="user-email-display">email@cinema.vn</span>
+                            </div>
+                        </div>
+                        <div class="user-dropdown" id="user-dropdown">
+                            <a href="bookings-history.html" class="dropdown-item"><span class="icon">🎫</span> Lịch sử đặt vé</a>
+                            <a href="#" class="dropdown-item" onclick="handleLogout(event); return false;"><span class="icon">🚪</span> Đăng xuất</a>
                         </div>
                     </div>
-                    <a href="bookings-history.html" class="profile-link">Lịch sử đặt vé</a>
-                    <a href="#" class="profile-link" onclick="handleLogout(event)">Đăng xuất</a>
                 </div>
             </div>
         </div>
@@ -153,16 +157,16 @@
         function updateAuthUI() {
             const user = Storage.getUser();
             const authBtn = document.getElementById('auth-btn');
-            const profileMenu = document.getElementById('profile-menu');
+            const userProfile = document.getElementById('user-profile');
             
             if (user) {
                 authBtn.style.display = 'none';
-                profileMenu.style.display = 'block';
-                document.getElementById('profile-name').textContent = user.username || user.name || 'User';
-                document.getElementById('profile-email').textContent = user.email || '';
+                userProfile.style.display = 'flex';
+                document.getElementById('username-display').textContent = user.username || user.user_id || 'User';
+                document.getElementById('user-email-display').textContent = user.email || 'khách hàng';
             } else {
                 authBtn.style.display = 'block';
-                profileMenu.style.display = 'none';
+                userProfile.style.display = 'none';
             }
         }
 
@@ -293,7 +297,7 @@
         }
 
         function handleAuthClick() {
-            window.location.href = 'login.html';
+            window.location.href = 'auth.html';
         }
 
         function handleLogout(event) {
@@ -303,12 +307,17 @@
             window.location.href = 'index.html';
         }
 
-        // Close menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const authBtn = document.getElementById('auth-btn');
-            const profileMenu = document.getElementById('profile-menu');
-            if (!event.target.closest('.btn-login') && !event.target.closest('.profile-menu')) {
-                profileMenu.style.display = 'none';
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('user-dropdown');
+            dropdown.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            const userSection = document.getElementById('user-profile');
+            const dropdown = document.getElementById('user-dropdown');
+            if (userSection && !userSection.contains(e.target)) {
+                dropdown?.classList.remove('show');
             }
         });
     </script>
