@@ -26,6 +26,7 @@ function initializeDashboard() {
     loadDashboard();
     loadMovies();
     loadShowings();
+    loadCinemas();
     loadBookings();
     loadUsers();
 }
@@ -59,6 +60,46 @@ function setupEventListeners() {
     if (addShowingBtn) addShowingBtn.addEventListener('click', openShowingModal);
     if (showingForm) showingForm.addEventListener('submit', saveShowing);
 
+    // Cinema operations
+    const addCinemaBtn = document.getElementById('add-cinema-btn');
+    const cinemaForm = document.getElementById('cinema-form');
+    if (addCinemaBtn) addCinemaBtn.addEventListener('click', () => {
+        currentCinemaId = null;
+        document.getElementById('cinema-modal-title').textContent = 'Thêm Rạp';
+        cinemaForm.reset();
+        openModal(cinemasModal);
+    });
+    if (cinemaForm) cinemaForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const cinemaData = {
+            name: document.getElementById('cinema-name').value,
+            city: document.getElementById('cinema-city').value,
+            address: document.getElementById('cinema-address').value,
+            phone: document.getElementById('cinema-phone').value
+        };
+        try {
+            const url = currentCinemaId 
+                ? `${API_BASE_URL}/cinemas.php?id=${currentCinemaId}`
+                : `${API_BASE_URL}/cinemas.php`;
+            const method = currentCinemaId ? 'PUT' : 'POST';
+            const response = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cinemaData)
+            });
+            if (response.ok) {
+                showNotification(currentCinemaId ? 'Cập nhật rạp thành công!' : 'Thêm rạp thành công!', 'success');
+                closeModal(cinemasModal);
+                loadCinemas();
+            } else {
+                showNotification('Lỗi khi lưu rạp', 'error');
+            }
+        } catch (error) {
+            console.error('Error saving cinema:', error);
+            showNotification('Lỗi khi lưu rạp', 'error');
+        }
+    });
+
     // Modal close buttons
     document.querySelectorAll('.modal-close, .modal-close-btn').forEach(btn => {
         btn.addEventListener('click', closeModal);
@@ -89,6 +130,7 @@ function switchSection(sectionId) {
         if (sectionId === 'dashboard') loadDashboard();
         else if (sectionId === 'movies') loadMovies();
         else if (sectionId === 'showings') loadShowings();
+        else if (sectionId === 'cinemas') loadCinemas();
         else if (sectionId === 'bookings') loadBookings();
         else if (sectionId === 'users') loadUsers();
     }

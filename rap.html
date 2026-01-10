@@ -12,8 +12,8 @@
   <div class="logo">RAP PHIM</div>
   <nav class="nav">
     <a href="index.html">Trang chủ</a>
-    <a href="#">Phim đang chiếu</a>
-    <a href="#">Phim sắp chiếu</a>
+    <a href="index.html#now-showing">Phim đang chiếu</a>
+    <a href="index.html#coming-soon">Phim sắp chiếu</a>
     <a href="#" class="active">Rạp</a>
     <a href="#">Khuyến mãi</a>
   </nav>
@@ -36,5 +36,56 @@
   <div class="cinema-list" id="cinemaList"></div>
 
 </div>
+
+<script>
+  const cinemaData = {
+    hcm: [
+      { name: 'Rạp Hồ Chí Minh - Tân Bình', address: '123 Đường Thái Văn Lung, Phường Tân Bình, TP.HCM', phone: '(028) 3847-1234' },
+      { name: 'Rạp Hồ Chí Minh - Quận 1', address: '456 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP.HCM', phone: '(028) 3821-5678' },
+      { name: 'Rạp Hồ Chí Minh - Bình Thạnh', address: '789 Đường Pasteur, Phường 6, Quận 3, TP.HCM', phone: '(028) 3932-9012' }
+    ],
+    hn: [
+      { name: 'Rạp Hà Nội - Hoàn Kiếm', address: '321 Đường Trang Tien, Phường Trang Tien, Quận Hoàn Kiếm, Hà Nội', phone: '(024) 3933-4567' },
+      { name: 'Rạp Hà Nội - Thanh Xuân', address: '654 Đường Giải Phóng, Phường Thanh Xuân Trung, Quận Thanh Xuân, Hà Nội', phone: '(024) 3541-8901' }
+    ],
+    dn: [
+      { name: 'Rạp Đà Nẵng - Hải Châu', address: '111 Đường Ngô Gia Tự, Phường Hải Châu 1, Quận Hải Châu, Đà Nẵng', phone: '(0236) 3821-2345' }
+    ],
+    ct: [
+      { name: 'Rạp Cần Thơ - Ninh Kiều', address: '222 Đường Hòa An, Phường An Hòa, Quận Ninh Kiều, Cần Thơ', phone: '(0292) 3710-3456' }
+    ]
+  };
+
+  const cityButtons = document.querySelectorAll('.city');
+  const cinemaList = document.getElementById('cinemaList');
+
+  function displayCinemas(city) {
+    cinemaList.innerHTML = '';
+    const cinemas = cinemaData[city] || [];
+    
+    cinemas.forEach(cinema => {
+      const cinemaItem = document.createElement('div');
+      cinemaItem.className = 'cinema-item';
+      cinemaItem.innerHTML = `
+        <h3 class="cinema-name">${cinema.name}</h3>
+        <p class="cinema-address"><strong>📍 Địa chỉ:</strong> ${cinema.address}</p>
+        <p class="cinema-phone"><strong>📞 Điện thoại:</strong> ${cinema.phone}</p>
+      `;
+      cinemaList.appendChild(cinemaItem);
+    });
+  }
+
+  // Event listeners for city selection
+  cityButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      cityButtons.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      displayCinemas(this.dataset.city);
+    });
+  });
+
+  // Display Ho Chi Minh cinemas by default
+  displayCinemas('hcm');
+</script>
 </body>
 </html>
