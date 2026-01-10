@@ -63,11 +63,35 @@
         </button>
 
     </div>
+
+    <!-- Payment Method Modal -->
+    <div id="paymentModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 9999; display: none; align-items: center; justify-content: center;">
+        <div style="background: #141a3a; border: 2px solid #ff1f1f; border-radius: 12px; padding: 30px; max-width: 400px; text-align: center; box-shadow: 0 8px 32px rgba(255, 31, 31, 0.3);">
+            <h2 style="color: #ff8c8c; margin-bottom: 20px; font-size: 20px;">Chọn Phương Thức Thanh Toán</h2>
+            <p style="color: #cfd3ff; margin-bottom: 25px; font-size: 14px;">Vui lòng chọn cách thanh toán cho vé của bạn</p>
+            
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <button id="depositBtn" 
+                    style="padding: 15px; background: #1b2150; border: 2px solid #00b7ff; border-radius: 8px; color: #00b7ff; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
+                    💰 Cọc 50% Tiền Vé
+                </button>
+                
+                <button id="bankBtn" 
+                    style="padding: 15px; background: #1b2150; border: 2px solid #00b7ff; border-radius: 8px; color: #00b7ff; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
+                    🏦 Trả Bằng Ngân Hàng
+                </button>
+            </div>
+            
+            <button id="cancelPaymentBtn" 
+                style="margin-top: 20px; padding: 10px 20px; background: transparent; border: 1px solid #666; border-radius: 6px; color: #999; font-size: 14px; cursor: pointer; transition: all 0.3s ease;">
+                Hủy
+            </button>
+        </div>
+    </div>
 </body>
 </html>
 
 <script src="../js/api-client.js"></script>
-<script src="../js/bookings-client.js"></script>
 <script src="../js/storage.js"></script>
 <script src="../js/notification.js"></script>
 <script>
@@ -77,6 +101,7 @@
     let currentMovie = null;
     let requiredQuantity = 0;
     let allSeats = []; // Store all seats with their info
+    let selectedPaymentMethod = null; // Store selected payment method
 
     function debug(msg) {
         console.log(msg);
@@ -474,12 +499,69 @@
     }
 
     function setupButtons() {
-        document.getElementById('confirmBtn').addEventListener('click', confirmBooking);
+        document.getElementById('confirmBtn').addEventListener('click', showPaymentModal);
+        
+        // Payment modal button handlers
+        document.getElementById('depositBtn').addEventListener('click', () => {
+            selectedPaymentMethod = 'deposit';
+            proceedWithBooking();
+        });
+        
+        document.getElementById('bankBtn').addEventListener('click', () => {
+            selectedPaymentMethod = 'bank_transfer';
+            proceedWithBooking();
+        });
+        
+        document.getElementById('cancelPaymentBtn').addEventListener('click', hidePaymentModal);
+        
+        // Close modal when clicking outside of it
+        document.getElementById('paymentModal').addEventListener('click', (e) => {
+            if (e.target.id === 'paymentModal') {
+                hidePaymentModal();
+            }
+        });
         
         // Disable confirm button initially
         document.getElementById('confirmBtn').disabled = true;
         document.getElementById('confirmBtn').style.opacity = '0.6';
         document.getElementById('confirmBtn').style.cursor = 'not-allowed';
+    }
+
+    function showPaymentModal() {
+        const modal = document.getElementById('paymentModal');
+        modal.style.display = 'flex';
+        
+        // Add hover effects
+        const depositBtn = document.getElementById('depositBtn');
+        const bankBtn = document.getElementById('bankBtn');
+        
+        depositBtn.addEventListener('mouseenter', function() {
+            this.style.background = '#00b7ff';
+            this.style.color = '#141a3a';
+        });
+        depositBtn.addEventListener('mouseleave', function() {
+            this.style.background = '#1b2150';
+            this.style.color = '#00b7ff';
+        });
+        
+        bankBtn.addEventListener('mouseenter', function() {
+            this.style.background = '#00b7ff';
+            this.style.color = '#141a3a';
+        });
+        bankBtn.addEventListener('mouseleave', function() {
+            this.style.background = '#1b2150';
+            this.style.color = '#00b7ff';
+        });
+    }
+
+    function hidePaymentModal() {
+        const modal = document.getElementById('paymentModal');
+        modal.style.display = 'none';
+    }
+
+    async function proceedWithBooking() {
+        hidePaymentModal();
+        await confirmBooking();
     }
 
     async function confirmBooking() {
@@ -488,9 +570,11 @@
         console.log('>>> Current movieId:', movieId, 'type:', typeof movieId);
         
         const user = Storage.getUser();
-        if (!user || !user.id) {
+        console.log('>>> User object:', user);
+        
+        if (!user || (!user.id && !user.user_id)) {
             Notification.error('Vui lòng đăng nhập để đặt vé');
-            setTimeout(() => window.location.href = 'login.html', 1500);
+            setTimeout(() => window.location.href = 'auth.html', 1500);
             return;
         }
 
@@ -521,19 +605,22 @@
         try {
             const seatIds = selectedSeats.map(s => parseInt(s.id)); // Ensure IDs are numbers
             
+            // Use user.id first, then fall back to user.user_id
+            const userId = user.id || user.user_id;
+            
             const bookingData = {
-                user_id: parseInt(user.user_id || user.id),
+                user_id: parseInt(userId),
                 movie_id: parseInt(movieId),
                 showing_id: parseInt(showingId),
                 seats: seatIds, // Use actual seat IDs as numbers
-                payment_method: 'cash'
+                payment_method: selectedPaymentMethod || 'cash'
             };
             
             // Validate all fields before sending
             console.log('=== User Info ===');
             console.log('user object:', user);
-            console.log('user.user_id:', user.user_id, typeof user.user_id);
             console.log('user.id:', user.id, typeof user.id);
+            console.log('user.user_id:', user.user_id, typeof user.user_id);
             console.log('=== Booking Data ===');
             console.log('user_id:', bookingData.user_id, typeof bookingData.user_id);
             console.log('movie_id:', bookingData.movie_id, typeof bookingData.movie_id);
@@ -542,7 +629,7 @@
             console.log('payment_method:', bookingData.payment_method);
             
             // Check for invalid values
-            if (!bookingData.user_id) {
+            if (!bookingData.user_id || bookingData.user_id === 0) {
                 Notification.error('Lỗi: Không tìm thấy thông tin người dùng');
                 return;
             }
@@ -559,7 +646,9 @@
                 return;
             }
             
-            const response = await BookingsClient.createBooking(bookingData);
+            console.log('>>> Calling BookingsClient.createBooking with:', bookingData);
+            const response = await APIClient.createBooking(bookingData);
+            console.log('>>> Booking response:', response);
 
             if (response.success) {
                 Notification.success('Đặt vé thành công! Mã đặt vé: #' + response.data.booking_id);

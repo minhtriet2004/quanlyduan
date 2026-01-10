@@ -114,12 +114,13 @@ else if ($method === 'POST') {
             sendResponse(false, 'Showing not found', null, 404);
         }
 
-        $total_price = count($seats) * $showing['price'];
+        $total_seats = count($seats);
+        $total_price = $total_seats * $showing['price'];
 
         // Create booking
         $stmt = $conn->prepare("INSERT INTO bookings (user_id, showing_id, movie_id, total_seats, total_price, status, payment_method) 
                   VALUES (?, ?, ?, ?, ?, 'confirmed', ?)");
-        $stmt->bind_param("iiidis", $user_id, $showing_id, $movie_id, count($seats), $total_price, $payment_method);
+        $stmt->bind_param("iiidis", $user_id, $showing_id, $movie_id, $total_seats, $total_price, $payment_method);
 
         if ($stmt->execute()) {
             $booking_id = $conn->insert_id;
