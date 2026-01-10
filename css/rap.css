@@ -61,7 +61,7 @@ body {
 .city-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 25px;
+  gap: 15px;
   justify-content: center;
   margin-bottom: 40px;
 }
@@ -69,12 +69,26 @@ body {
 .city {
   cursor: pointer;
   font-size: 16px;
+  font-weight: 500;
   color: #cfd3ff;
+  background: #141a3a;
+  padding: 12px 28px;
+  border-radius: 25px;
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.city:hover {
+  background: #1b2150;
+  border-color: #ff1f1f;
+  transform: translateY(-2px);
 }
 
 .city.active {
-  color: #ff1f1f;
-  text-decoration: underline;
+  background: #ff1f1f;
+  color: #fff;
+  border-color: #ff1f1f;
+  box-shadow: 0 4px 15px rgba(255, 31, 31, 0.3);
 }
 
 /* CINEMA LIST */
