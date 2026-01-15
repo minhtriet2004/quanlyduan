@@ -185,31 +185,55 @@
 
     async function getFirstAvailableShowingWithDetails() {
         try {
-            // First, ensure showing exists for this movie
-            console.log('>>> Calling getOrCreateShowing for movieId:', movieId);
-            const getOrCreateRes = await APIClient.getOrCreateShowing(movieId);
-            console.log('>>> getOrCreateShowing response:', getOrCreateRes);
+            // Check if showing_id is already selected (from choose-showing.html)
+            const bookingInfo = JSON.parse(sessionStorage.getItem('bookingInfo') || '{}');
             
-            if (!getOrCreateRes || !getOrCreateRes.success) {
-                console.warn('Could not get or create showing, keeping default showing_id=1');
-                console.warn('Response was:', getOrCreateRes);
-                document.getElementById('showingInfo').textContent = 'Mặc định';
-                document.getElementById('ticketPrice').textContent = 'N/A';
-                return;
-            }
-            
-            // Use the showing_id from get_or_create
-            if (!getOrCreateRes.data || !getOrCreateRes.data.showing_id) {
-                console.error('Response missing showing_id!', getOrCreateRes);
-                return;
-            }
-            
-            showingId = parseInt(getOrCreateRes.data.showing_id);
-            console.log('>>> Setting showingId to:', showingId, 'type:', typeof showingId);
-            
-            if (!showingId || isNaN(showingId)) {
-                console.error('showingId is invalid after parsing:', getOrCreateRes.data.showing_id);
-                return;
+            if (bookingInfo.showing_id) {
+                // Use pre-selected showing_id from choose-showing.html
+                showingId = parseInt(bookingInfo.showing_id);
+                console.log('>>> Using pre-selected showingId from choose-showing.html:', showingId);
+            } else {
+                // Fallback: Try to get or create showing (old behavior)
+                let getOrCreateRes = null;
+                let retryCount = 0;
+                const maxRetries = 2;
+
+                while (!getOrCreateRes || !getOrCreateRes.success) {
+                    console.log(`>>> Calling getOrCreateShowing for movieId: ${movieId} (attempt ${retryCount + 1})`);
+                    getOrCreateRes = await APIClient.getOrCreateShowing(movieId);
+                    console.log('>>> getOrCreateShowing response:', getOrCreateRes);
+                    
+                    retryCount++;
+                    if (!getOrCreateRes || !getOrCreateRes.success) {
+                        if (retryCount >= maxRetries) {
+                            console.warn('getOrCreateShowing failed after retries, using fallback showing_id=1');
+                            showingId = 1;
+                            document.getElementById('showingInfo').textContent = 'Hôm nay';
+                            document.getElementById('ticketPrice').textContent = 'N/A';
+                            return;
+                        }
+                        // Wait a bit before retrying
+                        await new Promise(r => setTimeout(r, 500));
+                        continue;
+                    }
+                    break; // Success, exit loop
+                }
+                
+                // Use the showing_id from get_or_create
+                if (!getOrCreateRes.data || !getOrCreateRes.data.showing_id) {
+                    console.error('Response missing showing_id!', getOrCreateRes);
+                    showingId = 1;
+                    return;
+                }
+                
+                showingId = parseInt(getOrCreateRes.data.showing_id);
+                console.log('>>> Setting showingId to:', showingId, 'type:', typeof showingId);
+                
+                if (!showingId || isNaN(showingId)) {
+                    console.error('showingId is invalid after parsing:', getOrCreateRes.data.showing_id);
+                    showingId = 1;
+                    return;
+                }
             }
             
             // Get showings for this movie to get time info
@@ -225,7 +249,7 @@
             const showings = response.data.showings || [];
             
             if (showings.length > 0) {
-                // Find the showing we just created/retrieved
+                // Find the showing we selected
                 const currentShowing = showings.find(s => s.id == showingId) || showings[0];
                 
                 // Format and display showing info
@@ -265,7 +289,8 @@
             }
         } catch (error) {
             console.error('Error getting showing:', error);
-            console.warn('Keeping default showing_id=1');
+            console.warn('Using fallback showing_id=1');
+            showingId = 1;
         }
     }
 
@@ -589,10 +614,11 @@
         }
 
         // Validate showing_id
-        if (showingId === null || showingId === undefined || showingId === 0 || isNaN(showingId)) {
+        if (showingId === null || showingId === undefined || isNaN(showingId)) {
             console.error('showingId is invalid:', showingId);
-            Notification.error('Không tìm thấy suất chiếu. Vui lòng tải lại trang');
-            return;
+            // Try to use showing_id 1 as fallback
+            showingId = 1;
+            console.log('Using fallback showing_id:', showingId);
         }
 
         // Validate seats

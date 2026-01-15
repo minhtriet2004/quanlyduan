@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chọn Suất Chiếu</title>
+    <link rel="stylesheet" href="css/choose-seat.css">
+    <link rel="stylesheet" href="css/notification.css">
+</head>
+<body>
+    <div class="movie-container">
+        <label>Chọn suất chiếu cho phim:</label>
+        <h2 id="movieName" style="color:white; margin-top:5px;"></h2>
+        
+        <p id="ticketQuantity" style="color:#00b7ff; margin-top:10px; font-size:16px;"></p>
+
+        <div style="margin-top: 30px;">
+            <div id="showingsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <p style="color: white; text-align: center;">Đang tải suất chiếu...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/notification.js"></script>
+    <script>
+        let movieId = null;
+        let requiredQuantity = 0;
+        let currentMovie = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadShowingSelection();
+        });
+
+        async function loadShowingSelection() {
+            const params = new URLSearchParams(window.location.search);
+            movieId = params.get('id');
+
+            if (!movieId) {
+                Notification.error('Không tìm thấy phim');
+                setTimeout(() => window.location.href = 'index.html', 1500);
+                return;
+            }
+
+            // Get booking info from session storage
+            const bookingInfo = JSON.parse(sessionStorage.getItem('bookingInfo') || '{}');
+            requiredQuantity = parseInt(bookingInfo.quantity) || 0;
+
+            if (requiredQuantity === 0) {
+                Notification.error('Không tìm thấy thông tin số lượng vé');
+                setTimeout(() => window.location.href = 'index.html', 1500);
+                return;
+            }
+
+            try {
+                // Load movie info
+                const movieRes = await APIClient.getMovieById(movieId);
+                if (movieRes.success) {
+                    currentMovie = movieRes.data.movie;
+                    document.getElementById('movieName').textContent = currentMovie.title || 'Không xác định';
+                    document.getElementById('ticketQuantity').textContent = `Bạn cần chọn ${requiredQuantity} ghế`;
+                }
+
+                // Load showings
+                const showingsRes = await APIClient.getShowings(movieId);
+                if (showingsRes.success) {
+                    const showings = showingsRes.data.showings || [];
+                    
+                    if (showings.length === 0) {
+                        document.getElementById('showingsContainer').innerHTML = '<p style="color: red; grid-column: 1/-1; text-align: center;">Không có suất chiếu nào cho phim này</p>';
+                        return;
+                    }
+
+                    displayShowings(showings);
+                } else {
+                    Notification.error('Không thể tải danh sách suất chiếu');
+                }
+            } catch (error) {
+                console.error('Error loading showings:', error);
+                Notification.error('Lỗi khi tải suất chiếu');
+            }
+        }
+
+        function displayShowings(showings) {
+            const container = document.getElementById('showingsContainer');
+            
+            container.innerHTML = showings.map(showing => {
+                // Parse date
+                const showingDate = showing.showing_date || '';
+                const showingTime = showing.showing_time || '';
+                
+                let formattedDate = showingDate;
+                if (showingDate) {
+                    const dateParts = showingDate.split('-');
+                    if (dateParts.length === 3) {
+                        formattedDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
+                    }
+                }
+                
+                let formattedTime = showingTime;
+                if (showingTime) {
+                    formattedTime = showingTime.substring(0, 5);
+                }
+
+                const price = parseFloat(showing.price) || 0;
+                const totalPrice = price * requiredQuantity;
+                
+                return `
+                    <div style="
+                        background: linear-gradient(135deg, #1a1f3a 0%, #222849 100%);
+                        border: 1px solid rgba(0, 183, 255, 0.3);
+                        border-radius: 12px;
+                        padding: 20px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    " 
+                    onmouseover="this.style.borderColor='#00b7ff'; this.style.transform='translateY(-5px)'"
+                    onmouseout="this.style.borderColor='rgba(0, 183, 255, 0.3)'; this.style.transform='translateY(0)'"
+                    onclick="selectShowing(${showing.id})">
+                        <div style="color: #00b7ff; font-size: 14px; margin-bottom: 10px;">
+                            🎬 Phòng: ${showing.room_number}
+                        </div>
+                        <div style="color: #fff; font-size: 18px; font-weight: bold; margin-bottom: 10px;">
+                            📅 ${formattedDate} lúc 🕐 ${formattedTime}
+                        </div>
+                        <div style="color: #cfd3ff; font-size: 14px; margin-bottom: 15px;">
+                            Ghế còn trống: <span style="color: #00b7ff; font-weight: bold;">${showing.available_seats}</span>
+                        </div>
+                        <div style="
+                            background: rgba(0, 183, 255, 0.1);
+                            padding: 12px;
+                            border-radius: 8px;
+                            text-align: center;
+                        ">
+                            <div style="color: #a8aeff; font-size: 12px; margin-bottom: 5px;">Tổng giá cho ${requiredQuantity} ghế:</div>
+                            <div style="color: #ffff00; font-size: 20px; font-weight: bold;">
+                                ${formatPrice(totalPrice)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectShowing(showingId) {
+            // Save showing_id to session storage
+            const bookingInfo = JSON.parse(sessionStorage.getItem('bookingInfo') || '{}');
+            bookingInfo.showing_id = showingId;
+            sessionStorage.setItem('bookingInfo', JSON.stringify(bookingInfo));
+            
+            // Redirect to choose-seat
+            window.location.href = `choose-seat.html?id=${movieId}`;
+        }
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('vi-VN', { 
+                style: 'currency', 
+                currency: 'VND',
+                minimumFractionDigits: 0 
+            }).format(price);
+        }
+    </script>
+</body>
+</html>
