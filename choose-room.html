@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chọn Phòng Chiếu</title>
+    <link rel="stylesheet" href="css/choose-seat.css">
+    <link rel="stylesheet" href="css/notification.css">
+    <style>
+        .room-selection-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .room-grid {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            margin-top: 30px;
+            overflow-x: auto;
+            padding-bottom: 20px;
+            scroll-behavior: smooth;
+        }
+        
+        .room-grid::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .room-grid::-webkit-scrollbar-track {
+            background: rgba(0, 183, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .room-grid::-webkit-scrollbar-thumb {
+            background: #00b7ff;
+            border-radius: 10px;
+        }
+        
+        .room-grid::-webkit-scrollbar-thumb:hover {
+            background: #0099cc;
+        }
+
+        .room-card {
+            background: linear-gradient(135deg, #1a1f3a 0%, #222849 100%);
+            border: 2px solid rgba(0, 183, 255, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 280px;
+            flex-shrink: 0;
+        }
+
+        .room-card:hover {
+            border-color: #00b7ff;
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 183, 255, 0.2);
+        }
+
+        .room-card.selected {
+            border-color: #00ff00;
+            background: linear-gradient(135deg, #1a3a1a 0%, #224822 100%);
+            box-shadow: 0 8px 24px rgba(0, 255, 0, 0.3);
+        }
+
+        .room-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: #00b7ff;
+            margin-bottom: 15px;
+        }
+
+        .room-card.selected .room-number {
+            color: #00ff00;
+        }
+
+        .room-info {
+            color: #cfd3ff;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        .room-status {
+            color: #a8aeff;
+            font-size: 12px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 183, 255, 0.2);
+        }
+
+        .room-status.available {
+            color: #00ff00;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .btn-next {
+            padding: 12px 30px;
+            background: #00b7ff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            background: #0099cc;
+            transform: scale(1.05);
+        }
+
+        .btn-next:disabled {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .btn-back {
+            padding: 12px 30px;
+            background: transparent;
+            color: #00b7ff;
+            border: 2px solid #00b7ff;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: rgba(0, 183, 255, 0.1);
+        }
+
+        .header-info {
+            background: rgba(0, 183, 255, 0.1);
+            border-left: 3px solid #00b7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            color: #cfd3ff;
+        }
+
+        .movie-title {
+            color: #00b7ff;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .showing-details {
+            color: #a8aeff;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="room-selection-container">
+        <h1 style="color: white; text-align: center; margin-bottom: 10px;">🎬 Chọn Phòng Chiếu</h1>
+        
+        <div class="header-info">
+            <div class="movie-title" id="movieDisplay">Phim: Đang tải...</div>
+            <div class="showing-details" id="showingDisplay">Chọn phòng chiếu cho phim này</div>
+        </div>
+
+        <div class="room-grid" id="roomGrid">
+            <p style="color: white; text-align: center; grid-column: 1/-1;">Đang tải phòng chiếu...</p>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-back" onclick="goBack()">← Quay Lại</button>
+            <button class="btn-next" id="nextBtn" disabled onclick="proceedToSeats()">Tiếp Tục →</button>
+        </div>
+    </div>
+
+    <script src="js/api-client.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/notification.js"></script>
+    <script>
+        let selectedRoom = null;
+        let movieId = null;
+        let showingId = null;
+        let currentMovie = null;
+        let currentShowing = null;
+        let bookingInfo = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadRoomSelection();
+        });
+
+        async function loadRoomSelection() {
+            const params = new URLSearchParams(window.location.search);
+            movieId = params.get('id');
+
+            if (!movieId) {
+                Notification.error('Thông tin phim không hợp lệ');
+                setTimeout(() => window.location.href = 'index.html', 1500);
+                return;
+            }
+
+            // Get booking info from session storage
+            bookingInfo = JSON.parse(sessionStorage.getItem('bookingInfo') || '{}');
+
+            try {
+                // Load movie info
+                const movieRes = await APIClient.getMovieById(movieId);
+                if (movieRes.success) {
+                    currentMovie = movieRes.data.movie;
+                    document.getElementById('movieDisplay').textContent = `🎬 Phim: ${currentMovie.title}`;
+                }
+
+                // Load available rooms (get unique room numbers from showings for this movie)
+                loadRooms();
+            } catch (error) {
+                console.error('Error loading info:', error);
+                Notification.error('Lỗi khi tải thông tin');
+            }
+        }
+
+        async function loadRooms() {
+            try {
+                const showingsRes = await APIClient.getShowings(movieId);
+                if (showingsRes.success) {
+                    const showings = showingsRes.data.showings || [];
+                    
+                    // Filter showings for this specific showing_id to get the room
+                    const availableShowings = showings.filter(s => s.id == showingId);
+                    
+                    // Get unique room numbers from this showing's options
+                    const rooms = [...new Set(showings.map(s => s.room_number))];
+                    
+                    if (rooms.length === 0) {
+                        document.getElementById('roomGrid').innerHTML = '<p style="color: red; grid-column: 1/-1; text-align: center;">Không có phòng chiếu nào</p>';
+                        return;
+                    }
+
+                    displayRooms(rooms.sort((a, b) => a - b));
+                }
+            } catch (error) {
+                console.error('Error loading rooms:', error);
+                Notification.error('Lỗi khi tải danh sách phòng');
+            }
+        }
+
+        function displayRooms(rooms) {
+            const container = document.getElementById('roomGrid');
+            container.innerHTML = rooms.map(roomNum => {
+                return `
+                    <div class="room-card" id="room-${roomNum}" onclick="selectRoom(${roomNum})">
+                        <div class="room-number">Phòng ${roomNum}</div>
+                        <div class="room-info">
+                            🎬 Suất chiếu trong hôm nay
+                        </div>
+                        <div class="room-status available">
+                            ✓ Có sẵn
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectRoom(roomNum) {
+            // Remove previous selection
+            if (selectedRoom !== null) {
+                document.getElementById(`room-${selectedRoom}`)?.classList.remove('selected');
+            }
+
+            // Add new selection
+            selectedRoom = roomNum;
+            document.getElementById(`room-${roomNum}`).classList.add('selected');
+            document.getElementById('nextBtn').disabled = false;
+
+            // Show notification
+            Notification.success(`Đã chọn phòng ${roomNum}`);
+        }
+
+        function proceedToSeats() {
+            if (selectedRoom === null) {
+                Notification.error('Vui lòng chọn một phòng chiếu');
+                return;
+            }
+
+            // Save room to booking info
+            bookingInfo.room_number = selectedRoom;
+            sessionStorage.setItem('bookingInfo', JSON.stringify(bookingInfo));
+
+            // Redirect to choose-showing (chọn suất chiếu của phòng này)
+            window.location.href = `choose-showing.html?id=${movieId}&room=${selectedRoom}`;
+        }
+
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('vi-VN', {
+                style: 'currency',
+                currency: 'VND',
+                minimumFractionDigits: 0
+            }).format(price);
+        }
+    </script>
+</body>
+</html>

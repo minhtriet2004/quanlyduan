@@ -153,7 +153,8 @@
             totalPrice: parseInt(document.getElementById('quantity').value) * ticketPrice
         }));
 
-        window.location.href = `choose-showing.html?id=${currentMovie.id}`;
+        // Redirect to choose-room (chọn phòng TRƯỚC suất chiếu)
+        window.location.href = `choose-room.html?id=${currentMovie.id}`;
     }
 </script>
 

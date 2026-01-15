@@ -19,6 +19,7 @@
             <div><strong>Thời lượng:</strong> <span id="movieDuration"></span> phút</div>
             <div><strong>Đánh giá:</strong> <span id="movieRating"></span>/5</div>
             <div style="margin-top: 10px; border-top: 1px solid #00b7ff; padding-top: 10px;">
+                <div><strong>Phòng chiếu:</strong> <span id="roomNumber" style="color: #ffff00; font-weight: bold;"></span></div>
                 <div><strong>Suất chiếu:</strong> <span id="showingInfo"></span></div>
                 <div><strong>Giá vé:</strong> <span id="ticketPrice" style="color: #ffff00; font-weight: bold;"></span></div>
             </div>
@@ -272,6 +273,10 @@
                 }
                 
                 document.getElementById('showingInfo').textContent = `${formattedDate} lúc ${formattedTime}`;
+                
+                // Display room number
+                const roomNum = currentShowing.room_number || 'N/A';
+                document.getElementById('roomNumber').textContent = `Phòng ${roomNum}`;
                 
                 // Get price from the movie object
                 if (currentMovie && currentMovie.price) {

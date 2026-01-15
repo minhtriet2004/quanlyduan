@@ -15,9 +15,25 @@
         <p id="ticketQuantity" style="color:#00b7ff; margin-top:10px; font-size:16px;"></p>
 
         <div style="margin-top: 30px;">
-            <div id="showingsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                <p style="color: white; text-align: center;">Đang tải suất chiếu...</p>
+            <div id="showingsContainer" style="display: flex; flex-direction: row; gap: 20px; overflow-x: auto; padding-bottom: 20px; scroll-behavior: smooth;">
+                <p style="color: white; text-align: center; width: 100%;">Đang tải suất chiếu...</p>
             </div>
+            <style>
+                #showingsContainer::-webkit-scrollbar {
+                    height: 8px;
+                }
+                #showingsContainer::-webkit-scrollbar-track {
+                    background: rgba(0, 183, 255, 0.1);
+                    border-radius: 10px;
+                }
+                #showingsContainer::-webkit-scrollbar-thumb {
+                    background: #00b7ff;
+                    border-radius: 10px;
+                }
+                #showingsContainer::-webkit-scrollbar-thumb:hover {
+                    background: #0099cc;
+                }
+            </style>
         </div>
     </div>
 
@@ -26,6 +42,7 @@
     <script src="js/notification.js"></script>
     <script>
         let movieId = null;
+        let selectedRoom = null;
         let requiredQuantity = 0;
         let currentMovie = null;
 
@@ -36,6 +53,7 @@
         async function loadShowingSelection() {
             const params = new URLSearchParams(window.location.search);
             movieId = params.get('id');
+            selectedRoom = parseInt(params.get('room')) || null;
 
             if (!movieId) {
                 Notification.error('Không tìm thấy phim');
@@ -59,16 +77,21 @@
                 if (movieRes.success) {
                     currentMovie = movieRes.data.movie;
                     document.getElementById('movieName').textContent = currentMovie.title || 'Không xác định';
-                    document.getElementById('ticketQuantity').textContent = `Bạn cần chọn ${requiredQuantity} ghế`;
+                    document.getElementById('ticketQuantity').textContent = `Bạn cần chọn ${requiredQuantity} ghế${selectedRoom ? ` - Phòng ${selectedRoom}` : ''}`;
                 }
 
                 // Load showings
                 const showingsRes = await APIClient.getShowings(movieId);
                 if (showingsRes.success) {
-                    const showings = showingsRes.data.showings || [];
+                    let showings = showingsRes.data.showings || [];
+                    
+                    // Filter showings by selected room
+                    if (selectedRoom) {
+                        showings = showings.filter(s => s.room_number === selectedRoom);
+                    }
                     
                     if (showings.length === 0) {
-                        document.getElementById('showingsContainer').innerHTML = '<p style="color: red; grid-column: 1/-1; text-align: center;">Không có suất chiếu nào cho phim này</p>';
+                        document.getElementById('showingsContainer').innerHTML = '<p style="color: red; grid-column: 1/-1; text-align: center;">Không có suất chiếu nào cho phòng này</p>';
                         return;
                     }
 
@@ -114,6 +137,8 @@
                         padding: 20px;
                         cursor: pointer;
                         transition: all 0.3s ease;
+                        min-width: 320px;
+                        flex-shrink: 0;
                     " 
                     onmouseover="this.style.borderColor='#00b7ff'; this.style.transform='translateY(-5px)'"
                     onmouseout="this.style.borderColor='rgba(0, 183, 255, 0.3)'; this.style.transform='translateY(0)'"
@@ -149,8 +174,8 @@
             bookingInfo.showing_id = showingId;
             sessionStorage.setItem('bookingInfo', JSON.stringify(bookingInfo));
             
-            // Redirect to choose-seat
-            window.location.href = `choose-seat.html?id=${movieId}`;
+            // Redirect to choose-seat (chọn ghế)
+            window.location.href = `choose-seat.html?id=${movieId}&showing_id=${showingId}`;
         }
 
         function formatPrice(price) {
