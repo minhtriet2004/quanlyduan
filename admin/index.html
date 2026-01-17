@@ -388,11 +388,11 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>Phòng Chiếu *</label>
-                        <input type="text" id="showing-room" placeholder="VD: Phòng A1" required>
+                        <input type="number" id="showing-room" min="1" max="20" required>
                     </div>
                     <div class="form-group">
                         <label>Số Ghế *</label>
-                        <input type="number" id="showing-seats" value="100" required>
+                        <input type="number" id="showing-seats" value="48" min="10" max="200" required>
                     </div>
                 </div>
                 <div class="form-row">
@@ -403,6 +403,10 @@
                     <div class="form-group">
                         <label>Giờ Chiếu *</label>
                         <input type="time" id="showing-time" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Giá Vé *</label>
+                        <input type="number" id="showing-price" min="1000" step="1000" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -419,10 +423,11 @@
     <script src="../js/notification.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/dashboard.js"></script>
-    <script src="js/movies.js"></script>
-    <script src="js/showings.js"></script>
+    <script src="js/showings-manage.js"></script>
+    <script src="js/movies-manage.js"></script>
     <script src="js/bookings.js"></script>
     <script src="js/users.js"></script>
+    <script src="js/main.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

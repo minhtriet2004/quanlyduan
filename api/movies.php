@@ -110,6 +110,18 @@ else if ($method === 'POST') {
         if (empty($title)) {
             sendResponse(false, 'Title is required', null, 400);
         }
+        
+        if ($price < 0) {
+            sendResponse(false, 'Price cannot be negative', null, 400);
+        }
+        
+        if ($duration < 0 || $duration > 500) {
+            sendResponse(false, 'Duration must be between 0 and 500 minutes', null, 400);
+        }
+        
+        if ($rating < 0 || $rating > 10) {
+            sendResponse(false, 'Rating must be between 0 and 10', null, 400);
+        }
 
         // Auto-determine status based on release_date
         $status = 'showing';
@@ -147,6 +159,22 @@ else if ($method === 'POST') {
 
         if ($id === 0) {
             sendResponse(false, 'Movie ID is required', null, 400);
+        }
+        
+        if (empty($title)) {
+            sendResponse(false, 'Title is required', null, 400);
+        }
+        
+        if ($price < 0) {
+            sendResponse(false, 'Price cannot be negative', null, 400);
+        }
+        
+        if ($duration < 0 || $duration > 500) {
+            sendResponse(false, 'Duration must be between 0 and 500 minutes', null, 400);
+        }
+        
+        if ($rating < 0 || $rating > 10) {
+            sendResponse(false, 'Rating must be between 0 and 10', null, 400);
         }
 
         // Auto-determine status based on release_date

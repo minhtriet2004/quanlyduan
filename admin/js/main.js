@@ -1,12 +1,28 @@
 // ===== ADMIN PANEL MAIN INITIALIZATION =====
+console.log('✅ main.js loaded');
+
 let currentAdmin = null;
 
 // Check if admin is logged in
-window.addEventListener('DOMContentLoaded', () => {
+function initializeAdmin() {
+    console.log('Initializing admin panel...');
     checkAdminLogin();
     initializeDashboard();
     setupEventListeners();
-});
+    console.log('Admin panel initialized');
+}
+
+console.log('Document ready state:', document.readyState);
+
+// Use both DOMContentLoaded and setTimeout as fallback
+if (document.readyState === 'loading') {
+    console.log('DOM still loading, waiting for DOMContentLoaded...');
+    document.addEventListener('DOMContentLoaded', initializeAdmin);
+} else {
+    // DOM is already loaded
+    console.log('DOM already loaded, running init with delay...');
+    setTimeout(initializeAdmin, 100);
+}
 
 function checkAdminLogin() {
     const adminSession = Storage.getAdmin();
@@ -26,23 +42,33 @@ function initializeDashboard() {
     loadDashboard();
     loadMovies();
     loadShowings();
-    loadCinemas();
+    // loadCinemas(); // Commented out - no cinemas section in UI
     loadBookings();
     loadUsers();
 }
 
 function setupEventListeners() {
-    // Sidebar navigation
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
+    console.log('Setting up event listeners...');
+    
+    // Sidebar navigation - simpler version
+    const navLinks = document.querySelectorAll('.nav-link');
+    console.log('Found', navLinks.length, 'nav links');
+    
+    navLinks.forEach((link, index) => {
+        const section = link.getAttribute('data-section');
+        console.log(`Nav link ${index}: ${section}`);
+        
+        link.addEventListener('click', function(e) {
+            console.log('Nav link clicked:', section);
+            e.preventDefault();
+            
             if (link.id === 'logout') {
-                e.preventDefault();
                 logout();
                 return;
             }
 
-            const section = link.dataset.section;
             if (section) {
+                console.log('Calling switchSection with:', section);
                 switchSection(section);
             }
         });
@@ -65,46 +91,6 @@ function setupEventListeners() {
     const showingForm = document.getElementById('showing-form');
     if (addShowingBtn) addShowingBtn.addEventListener('click', openShowingModal);
     if (showingForm) showingForm.addEventListener('submit', saveShowing);
-
-    // Cinema operations
-    const addCinemaBtn = document.getElementById('add-cinema-btn');
-    const cinemaForm = document.getElementById('cinema-form');
-    if (addCinemaBtn) addCinemaBtn.addEventListener('click', () => {
-        currentCinemaId = null;
-        document.getElementById('cinema-modal-title').textContent = 'Thêm Rạp';
-        cinemaForm.reset();
-        openModal(cinemasModal);
-    });
-    if (cinemaForm) cinemaForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const cinemaData = {
-            name: document.getElementById('cinema-name').value,
-            city: document.getElementById('cinema-city').value,
-            address: document.getElementById('cinema-address').value,
-            phone: document.getElementById('cinema-phone').value
-        };
-        try {
-            const url = currentCinemaId 
-                ? `${API_BASE_URL}/cinemas.php?id=${currentCinemaId}`
-                : `${API_BASE_URL}/cinemas.php`;
-            const method = currentCinemaId ? 'PUT' : 'POST';
-            const response = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(cinemaData)
-            });
-            if (response.ok) {
-                showNotification(currentCinemaId ? 'Cập nhật rạp thành công!' : 'Thêm rạp thành công!', 'success');
-                closeModal(cinemasModal);
-                loadCinemas();
-            } else {
-                showNotification('Lỗi khi lưu rạp', 'error');
-            }
-        } catch (error) {
-            console.error('Error saving cinema:', error);
-            showNotification('Lỗi khi lưu rạp', 'error');
-        }
-    });
 
     // Modal close buttons
     document.querySelectorAll('.modal-close, .modal-close-btn').forEach(btn => {
@@ -136,7 +122,6 @@ function switchSection(sectionId) {
         if (sectionId === 'dashboard') loadDashboard();
         else if (sectionId === 'movies') loadMovies();
         else if (sectionId === 'showings') loadShowings();
-        else if (sectionId === 'cinemas') loadCinemas();
         else if (sectionId === 'bookings') loadBookings();
         else if (sectionId === 'users') loadUsers();
     }

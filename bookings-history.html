@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lịch sử đặt vé - RAP PHIM</title>
+    <title>Lịch sử đặt vé - RẠP PHIM</title>
     <link rel="stylesheet" href="css/bookings-history.css">
     <link rel="stylesheet" href="css/notification.css">
 </head>
@@ -12,7 +12,7 @@
     <header class="header">
         <div class="container">
             <div class="header-content">
-                <div class="logo" onclick="window.location.href = 'index.html'" style="cursor: pointer;">RAP PHIM</div>
+                <div class="logo" onclick="window.location.href = 'index.html'" style="cursor: pointer;">RẠP PHIM</div>
                 <nav class="nav">
                     <a href="index.html" class="nav-link">Trang chủ</a>
                 </nav>
@@ -96,7 +96,6 @@
     </footer>
 
     <script src="../js/api-client.js"></script>
-    <script src="../js/bookings-client.js"></script>
     <script src="../js/storage.js"></script>
     <script src="../js/notification.js"></script>
     <script>
@@ -140,7 +139,7 @@
                     throw new Error('Không tìm thấy thông tin người dùng');
                 }
 
-                const response = await BookingsClient.getUserBookings(user.id);
+                const response = await APIClient.getBookings(user.id);
 
                 if (response.success) {
                     allBookings = response.data.bookings || [];
@@ -236,7 +235,7 @@
                 'Bạn có chắc muốn hủy đặt vé này?',
                 async () => {
                     try {
-                        const response = await BookingsClient.cancelBooking(bookingId);
+                        const response = await APIClient.cancelBooking(bookingId);
                         if (response.success) {
                             Notification.success('Đã hủy đặt vé thành công');
                             await new Promise(r => setTimeout(r, 1000));

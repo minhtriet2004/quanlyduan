@@ -115,6 +115,20 @@ else if ($method === 'POST') {
         }
 
         $total_seats = count($seats);
+        
+        // Check if enough seats available
+        if ($showing['available_seats'] < $total_seats) {
+            sendResponse(false, 'Not enough seats available. Available: ' . $showing['available_seats'] . ', Requested: ' . $total_seats, null, 400);
+        }
+        
+        // Validate seat IDs
+        foreach ($seats as $seat_id) {
+            $seat_id = intval($seat_id);
+            if ($seat_id <= 0) {
+                sendResponse(false, 'Invalid seat ID', null, 400);
+            }
+        }
+        
         $total_price = $total_seats * $showing['price'];
 
         // Create booking

@@ -19,6 +19,7 @@
             <div><strong>Thời lượng:</strong> <span id="movieDuration"></span> phút</div>
             <div><strong>Đánh giá:</strong> <span id="movieRating"></span>/5</div>
             <div style="margin-top: 10px; border-top: 1px solid #00b7ff; padding-top: 10px;">
+                <div><strong>Phòng chiếu:</strong> <span id="roomNumber" style="color: #ffff00; font-weight: bold;"></span></div>
                 <div><strong>Suất chiếu:</strong> <span id="showingInfo"></span></div>
                 <div><strong>Giá vé:</strong> <span id="ticketPrice" style="color: #ffff00; font-weight: bold;"></span></div>
             </div>
@@ -53,14 +54,17 @@
     </div>
     <p class="text">
         Bạn đã chọn <span id="count">0</span> / <span id="maxCount">0</span> chỗ
-    </p>
+    </p>    
+    
     <div class="action-buttons" style="margin-top: 20px; display: flex; gap: 20px; justify-content: center;">
+
     
         <button id="confirmBtn" 
             style="padding: 12px 25px; background:#00b7ff; border:none; border-radius:6px;
                 font-size:16px; color:white; cursor:pointer; font-weight:bold;">
             XÁC NHẬN ĐẶT VÉ
         </button>
+
 
     </div>
 
@@ -78,9 +82,18 @@
                 
                 <button id="bankBtn" 
                     style="padding: 15px; background: #1b2150; border: 2px solid #00b7ff; border-radius: 8px; color: #00b7ff; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
-                    🏦 Trả Bằng Ngân Hàng
+                    💸 Thanh Toán Online
                 </button>
+
+                <button id="\cashBtn" 
+                    style="padding: 15px; background: #1b2150; border: 2px solid #00b7ff; border-radius: 8px; color: #00b7ff; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
+                   💵Trả bằng Tiền Mặt Tại Rạp
+                </button>
+
             </div>
+
+              <div style="display: flex; flex-direction: column; gap: 15px;">
+                
             
             <button id="cancelPaymentBtn" 
                 style="margin-top: 20px; padding: 10px 20px; background: transparent; border: 1px solid #666; border-radius: 6px; color: #999; font-size: 14px; cursor: pointer; transition: all 0.3s ease;">
@@ -185,31 +198,55 @@
 
     async function getFirstAvailableShowingWithDetails() {
         try {
-            // First, ensure showing exists for this movie
-            console.log('>>> Calling getOrCreateShowing for movieId:', movieId);
-            const getOrCreateRes = await APIClient.getOrCreateShowing(movieId);
-            console.log('>>> getOrCreateShowing response:', getOrCreateRes);
+            // Check if showing_id is already selected (from choose-showing.html)
+            const bookingInfo = JSON.parse(sessionStorage.getItem('bookingInfo') || '{}');
             
-            if (!getOrCreateRes || !getOrCreateRes.success) {
-                console.warn('Could not get or create showing, keeping default showing_id=1');
-                console.warn('Response was:', getOrCreateRes);
-                document.getElementById('showingInfo').textContent = 'Mặc định';
-                document.getElementById('ticketPrice').textContent = 'N/A';
-                return;
-            }
-            
-            // Use the showing_id from get_or_create
-            if (!getOrCreateRes.data || !getOrCreateRes.data.showing_id) {
-                console.error('Response missing showing_id!', getOrCreateRes);
-                return;
-            }
-            
-            showingId = parseInt(getOrCreateRes.data.showing_id);
-            console.log('>>> Setting showingId to:', showingId, 'type:', typeof showingId);
-            
-            if (!showingId || isNaN(showingId)) {
-                console.error('showingId is invalid after parsing:', getOrCreateRes.data.showing_id);
-                return;
+            if (bookingInfo.showing_id) {
+                // Use pre-selected showing_id from choose-showing.html
+                showingId = parseInt(bookingInfo.showing_id);
+                console.log('>>> Using pre-selected showingId from choose-showing.html:', showingId);
+            } else {
+                // Fallback: Try to get or create showing (old behavior)
+                let getOrCreateRes = null;
+                let retryCount = 0;
+                const maxRetries = 2;
+
+                while (!getOrCreateRes || !getOrCreateRes.success) {
+                    console.log(`>>> Calling getOrCreateShowing for movieId: ${movieId} (attempt ${retryCount + 1})`);
+                    getOrCreateRes = await APIClient.getOrCreateShowing(movieId);
+                    console.log('>>> getOrCreateShowing response:', getOrCreateRes);
+                    
+                    retryCount++;
+                    if (!getOrCreateRes || !getOrCreateRes.success) {
+                        if (retryCount >= maxRetries) {
+                            console.warn('getOrCreateShowing failed after retries, using fallback showing_id=1');
+                            showingId = 1;
+                            document.getElementById('showingInfo').textContent = 'Hôm nay';
+                            document.getElementById('ticketPrice').textContent = 'N/A';
+                            return;
+                        }
+                        // Wait a bit before retrying
+                        await new Promise(r => setTimeout(r, 500));
+                        continue;
+                    }
+                    break; // Success, exit loop
+                }
+                
+                // Use the showing_id from get_or_create
+                if (!getOrCreateRes.data || !getOrCreateRes.data.showing_id) {
+                    console.error('Response missing showing_id!', getOrCreateRes);
+                    showingId = 1;
+                    return;
+                }
+                
+                showingId = parseInt(getOrCreateRes.data.showing_id);
+                console.log('>>> Setting showingId to:', showingId, 'type:', typeof showingId);
+                
+                if (!showingId || isNaN(showingId)) {
+                    console.error('showingId is invalid after parsing:', getOrCreateRes.data.showing_id);
+                    showingId = 1;
+                    return;
+                }
             }
             
             // Get showings for this movie to get time info
@@ -225,7 +262,7 @@
             const showings = response.data.showings || [];
             
             if (showings.length > 0) {
-                // Find the showing we just created/retrieved
+                // Find the showing we selected
                 const currentShowing = showings.find(s => s.id == showingId) || showings[0];
                 
                 // Format and display showing info
@@ -249,6 +286,10 @@
                 
                 document.getElementById('showingInfo').textContent = `${formattedDate} lúc ${formattedTime}`;
                 
+                // Display room number
+                const roomNum = currentShowing.room_number || 'N/A';
+                document.getElementById('roomNumber').textContent = `Phòng ${roomNum}`;
+                
                 // Get price from the movie object
                 if (currentMovie && currentMovie.price) {
                     const price = parseFloat(currentMovie.price);
@@ -265,7 +306,8 @@
             }
         } catch (error) {
             console.error('Error getting showing:', error);
-            console.warn('Keeping default showing_id=1');
+            console.warn('Using fallback showing_id=1');
+            showingId = 1;
         }
     }
 
@@ -598,10 +640,11 @@
         }
 
         // Validate showing_id
-        if (showingId === null || showingId === undefined || showingId === 0 || isNaN(showingId)) {
+        if (showingId === null || showingId === undefined || isNaN(showingId)) {
             console.error('showingId is invalid:', showingId);
-            Notification.error('Không tìm thấy suất chiếu. Vui lòng tải lại trang');
-            return;
+            // Try to use showing_id 1 as fallback
+            showingId = 1;
+            console.log('Using fallback showing_id:', showingId);
         }
 
         // Validate seats
