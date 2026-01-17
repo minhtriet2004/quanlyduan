@@ -54,11 +54,34 @@ else if ($method === 'POST') {
         $showing_date = sanitize($input['showing_date'] ?? '');
         $showing_time = sanitize($input['showing_time'] ?? '');
         $room_number = intval($input['room_number'] ?? 1);
-        $total_seats = intval($input['total_seats'] ?? 100);
+        $total_seats = intval($input['total_seats'] ?? 48);
         $price = floatval($input['price'] ?? 0);
 
+        // Validation
         if ($movie_id === 0 || empty($showing_date) || empty($showing_time)) {
             sendResponse(false, 'All fields are required', null, 400);
+        }
+        
+        // Validate date format and not past date
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $showing_date)) {
+            sendResponse(false, 'Invalid date format (use YYYY-MM-DD)', null, 400);
+        }
+        
+        $showing_datetime = strtotime($showing_date . ' ' . $showing_time);
+        if ($showing_datetime === false || $showing_datetime < time()) {
+            sendResponse(false, 'Showing date/time must be in the future', null, 400);
+        }
+        
+        if ($price <= 0) {
+            sendResponse(false, 'Price must be greater than 0', null, 400);
+        }
+        
+        if ($total_seats < 10 || $total_seats > 200) {
+            sendResponse(false, 'Total seats must be between 10 and 200', null, 400);
+        }
+        
+        if ($room_number < 1 || $room_number > 20) {
+            sendResponse(false, 'Room number must be between 1 and 20', null, 400);
         }
 
         $stmt = $conn->prepare("INSERT INTO showings (movie_id, showing_date, showing_time, room_number, total_seats, available_seats, price) 
@@ -97,6 +120,19 @@ else if ($method === 'POST') {
 
         if ($id === 0) {
             sendResponse(false, 'Showing ID is required', null, 400);
+        }
+        
+        // Validate date/time format
+        if (!empty($showing_date) && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $showing_date)) {
+            sendResponse(false, 'Invalid date format (use YYYY-MM-DD)', null, 400);
+        }
+        
+        if (!empty($showing_time) && !preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $showing_time)) {
+            sendResponse(false, 'Invalid time format (use HH:MM:SS)', null, 400);
+        }
+        
+        if ($price <= 0) {
+            sendResponse(false, 'Price must be greater than 0', null, 400);
         }
 
         $stmt = $conn->prepare("UPDATE showings SET showing_date = ?, showing_time = ?, price = ? WHERE id = ?");

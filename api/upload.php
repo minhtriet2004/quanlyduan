@@ -16,11 +16,21 @@ $file = $_FILES['image'];
 
 // Validate file
 $allowed_extensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+$allowed_mimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 $file_info = pathinfo($file['name']);
 $file_extension = strtolower($file_info['extension']);
 
 if (!in_array($file_extension, $allowed_extensions)) {
     sendResponse(false, 'Invalid file type. Allowed: ' . implode(', ', $allowed_extensions), null, 400);
+}
+
+// Validate MIME type
+$finfo = finfo_open(FILEINFO_MIME_TYPE);
+$mime_type = finfo_file($finfo, $file['tmp_name']);
+finfo_close($finfo);
+
+if (!in_array($mime_type, $allowed_mimes)) {
+    sendResponse(false, 'Invalid file MIME type: ' . $mime_type, null, 400);
 }
 
 // Check file size (max 5MB)

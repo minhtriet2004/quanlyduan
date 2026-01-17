@@ -57,7 +57,7 @@ function openMovieModal() {
     document.getElementById('movie-form').reset();
     document.getElementById('poster-preview').innerHTML = '';
     document.getElementById('movie-poster').value = '';
-    document.getElementById('movie-modal').style.display = 'block';
+    document.getElementById('movie-modal').style.display = 'flex';
     document.getElementById('movie-form').dataset.movieId = '';
     
     // Setup Enter key handler for form submission
@@ -132,7 +132,7 @@ async function editMovie(id) {
         
         const movieModal = document.getElementById('movie-modal');
         if (movieModal) {
-            movieModal.style.display = 'block';
+            movieModal.style.display = 'flex';
         } else {
             console.error('movie-modal element not found');
             showNotification('Lỗi: Modal không tồn tại', 'error');

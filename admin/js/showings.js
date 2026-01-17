@@ -39,14 +39,47 @@ async function loadShowings() {
 }
 
 function openShowingModal() {
+    console.log('openShowingModal called');
     document.getElementById('showing-form').reset();
     document.getElementById('showing-form').dataset.showingId = '';
-    document.getElementById('showing-modal').style.display = 'block';
+    
+    // Load movies into select
+    loadMoviesForSelect();
+    
+    const modal = document.getElementById('showing-modal');
+    console.log('Modal element:', modal);
+    if (modal) {
+        modal.style.display = 'flex';
+        console.log('Modal display set to flex');
+    } else {
+        console.error('showing-modal element not found!');
+    }
     setupFormEnterKeyForShowing();
+}
+
+// Load movies for select dropdown
+async function loadMoviesForSelect() {
+    try {
+        const response = await APIClient.getMovies('showing', 1000);
+        const movies = response.success ? response.data.movies : [];
+        
+        const select = document.getElementById('showing-movie');
+        select.innerHTML = '<option value="">Chọn phim</option>';
+        
+        movies.forEach(movie => {
+            const option = document.createElement('option');
+            option.value = movie.id;
+            option.textContent = movie.title;
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading movies for select:', error);
+    }
 }
 
 async function editShowing(id) {
     try {
+        console.log('Editing showing:', id);
         const response = await APIClient.getShowings();
         
         if (!response.success) {
@@ -57,15 +90,21 @@ async function editShowing(id) {
         const showings = response.data.showings || [];
         const showing = showings.find(s => s.id === id);
         
-        if (!showing) return;
+        if (!showing) {
+            console.error('Showing not found:', id);
+            return;
+        }
 
+        console.log('Found showing:', showing);
         document.getElementById('showing-movie').value = showing.movie_id;
         document.getElementById('showing-room').value = showing.room_number;
         document.getElementById('showing-seats').value = showing.total_seats;
         document.getElementById('showing-date').value = showing.showing_date;
         document.getElementById('showing-time').value = showing.showing_time;
         document.getElementById('showing-form').dataset.showingId = id;
-        document.getElementById('showing-modal').style.display = 'block';
+        document.getElementById('showing-modal').style.display = 'flex';
+        setupFormEnterKeyForShowing();
+        console.log('Modal opened for editing');
     } catch (error) {
         console.error('Error editing showing:', error);
     }
@@ -73,16 +112,20 @@ async function editShowing(id) {
 
 async function saveShowing(e) {
     e.preventDefault();
+    console.log('saveShowing called');
 
     const showingId = document.getElementById('showing-form').dataset.showingId;
+    console.log('Showing ID:', showingId);
+    
     const showingData = {
         movie_id: parseInt(document.getElementById('showing-movie').value),
         room_number: parseInt(document.getElementById('showing-room').value) || 1,
-        total_seats: parseInt(document.getElementById('showing-seats').value) || 100,
         showing_date: document.getElementById('showing-date').value,
         showing_time: document.getElementById('showing-time').value,
-        price: 50000 // Default price, can be customized
+        total_seats: parseInt(document.getElementById('showing-seats').value) || 100
     };
+    
+    console.log('Showing data:', showingData);
 
     try {
         let response;
@@ -110,7 +153,7 @@ async function saveShowing(e) {
         console.error('Error saving showing:', error);
         showNotification('Lỗi khi lưu suất chiếu!', 'error');
     }
-}
+
 
 async function deleteShowingConfirm(id) {
     if (confirm('Bạn chắc chắn muốn xóa suất chiếu này?')) {

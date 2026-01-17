@@ -26,7 +26,7 @@ class APIClient {
 
     // Movies endpoints
     static async getMovies(status = 'showing', limit = 100, offset = 0) {
-        return this.get(`movies.php?status=${status}&limit=${limit}&offset=${offset}`);
+        return this.get(`movies.php?limit=${limit}&offset=${offset}`);
     }
 
     static async getMovieById(id) {
@@ -110,14 +110,23 @@ class APIClient {
     static async get(endpoint) {
         try {
             console.log('API GET:', `${API_BASE_URL}/${endpoint}`);
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            
             const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                signal: controller.signal
             });
             
+            clearTimeout(timeout);
             console.log('API Response Status:', response.status);
+            
+            if (!response.ok) {
+                return { success: false, message: `HTTP ${response.status}` };
+            }
             
             const text = await response.text();
             console.log('API Raw Response:', text);
@@ -127,13 +136,16 @@ class APIClient {
                 data = JSON.parse(text);
             } catch (e) {
                 console.error('Failed to parse JSON response:', e);
-                return { success: false, message: 'Invalid server response: ' + text.substring(0, 100) };
+                return { success: false, message: 'Invalid server response' };
             }
             
             console.log('API Response:', data);
             return data;
         } catch (error) {
             console.error('API GET Error:', error);
+            if (error.name === 'AbortError') {
+                return { success: false, message: 'Request timeout' };
+            }
             return { success: false, message: 'Network error: ' + error.message };
         }
     }
@@ -141,15 +153,24 @@ class APIClient {
     static async post(endpoint, data) {
         try {
             console.log('API POST:', `${API_BASE_URL}/${endpoint}`, data);
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            
             const response = await fetch(`${API_BASE_URL}/${endpoint}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(data)
+                body: JSON.stringify(data),
+                signal: controller.signal
             });
             
+            clearTimeout(timeout);
             console.log('API Response Status:', response.status);
+            
+            if (!response.ok) {
+                return { success: false, message: `HTTP ${response.status}` };
+            }
             
             const text = await response.text();
             console.log('API Raw Response:', text);
@@ -159,13 +180,16 @@ class APIClient {
                 result = JSON.parse(text);
             } catch (e) {
                 console.error('Failed to parse JSON response:', e);
-                return { success: false, message: 'Invalid server response: ' + text.substring(0, 100) };
+                return { success: false, message: 'Invalid server response' };
             }
             
             console.log('API Response:', result);
             return result;
         } catch (error) {
             console.error('API POST Error:', error);
+            if (error.name === 'AbortError') {
+                return { success: false, message: 'Request timeout' };
+            }
             return { success: false, message: 'Network error: ' + error.message };
         }
     }

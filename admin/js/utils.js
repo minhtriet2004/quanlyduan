@@ -43,18 +43,29 @@ function showNotification(message, type = 'info') {
     setTimeout(() => notification.remove(), 3000);
 }
 
-function closeModal() {
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.style.display = 'none';
-    });
+function openModal(modalElement) {
+    if (modalElement) {
+        modalElement.style.display = 'flex';
+    }
+}
+
+function closeModal(modalElement = null) {
+    if (modalElement) {
+        modalElement.style.display = 'none';
+    } else {
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.style.display = 'none';
+        });
+    }
 }
 
 // Modal management
 document.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-close') || e.target.classList.contains('modal-close-btn')) {
-        closeModal();
+        const modal = e.target.closest('.modal');
+        closeModal(modal);
     }
     if (e.target.classList.contains('modal')) {
-        closeModal();
+        closeModal(e.target);
     }
 });
