@@ -94,6 +94,9 @@
             // Thêm event listener cho nút kiểm tra thanh toán
             document.getElementById('check-payment').addEventListener('click', function() {
                 alert('Thanh toán thành công!');
+                // Chuyển hướng về trang lịch sử đặt vé sau khi thanh toán thành công
+                window.location.href = 'bookings-history.html';
+                
             });
         });
     </script>
