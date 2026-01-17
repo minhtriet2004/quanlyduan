@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh toán - Quản Lý Dự Án</title>
+    <link rel="stylesheet" href="css/index.css">
+    <style>
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #070b1f;
+            color: #ffffff;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #1a1f3a;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #e50914;
+            margin-bottom: 20px;
+        }
+        .payment-info {
+            margin-bottom: 20px;
+        }
+        .payment-info p {
+            margin: 10px 0;
+            color: #b8b8b8;
+        }
+        .payment-info strong {
+            color: #ffffff;
+        }
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .qr-code p {
+            color: #b8b8b8;
+            margin-bottom: 10px;
+        }
+        .check-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #e50914;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .check-btn:hover {
+            background-color: #f40612;
+        }
+    </style>
+<body>
+    <div class="container">
+        <h1>Thanh toán qua QR Code</h1>
+        <div class="payment-info">
+            <p><strong>Phim:</strong> <span id="movie-name">Tên Phim</span></p>
+            <p><strong>Ghế đã chọn:</strong> <span id="selected-seats">A1, A2</span></p>
+            <p><strong>Số tiền:</strong> <span id="amount">100,000 VND</span></p>
+            <p><strong>Ngân hàng:</strong> Vietcombank</p>
+            <p><strong>Số tài khoản:</strong> 1234567890</p>
+            <p><strong>Tên tài khoản:</strong> Công Ty Quản Lý Rạp</p>
+        </div>
+        <div class="qr-code">
+            <p>Quét mã QR để thanh toán:</p>
+            <img src="img/QRCode.png" alt="QR Code Thanh Toán" style="max-width: 256px; height: auto; border: 1px solid #ddd; border-radius: 4px;">
+        </img>
+        <button id="check-payment" class="check-btn">Kiểm tra thanh toán</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Giả lập dữ liệu từ localStorage hoặc URL params
+            const movieName = localStorage.getItem('selectedMovie') || 'Tên Phim';
+            const selectedSeats = localStorage.getItem('selectedSeats') || 'A1, A2';
+            const amount = localStorage.getItem('totalAmount') || '100000';
+
+            document.getElementById('movie-name').textContent = movieName;
+            document.getElementById('selected-seats').textContent = selectedSeats;
+            document.getElementById('amount').textContent = amount + ' VND';
+
+            // Thêm event listener cho nút kiểm tra thanh toán
+            document.getElementById('check-payment').addEventListener('click', function() {
+                alert('Thanh toán thành công!');
+            });
+        });
+    </script>
+</body>
+</html>

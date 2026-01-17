@@ -561,7 +561,16 @@
 
     async function proceedWithBooking() {
         hidePaymentModal();
-        await confirmBooking();
+        
+        if (selectedPaymentMethod === 'bank_transfer') {
+            // Lưu thông tin vào localStorage để trang thanh toán sử dụng
+            localStorage.setItem('selectedMovie', currentMovie.title);
+            localStorage.setItem('selectedSeats', selectedSeats.map(s => s.seat_number).join(', '));
+            localStorage.setItem('totalAmount', (selectedSeats.length * currentMovie.price).toString());
+            window.location.href = 'payment.html';
+        } else {
+            await confirmBooking();
+        }
     }
 
     async function confirmBooking() {
