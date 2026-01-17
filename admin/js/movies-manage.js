@@ -1,4 +1,6 @@
-// ===== MOVIES =====
+// ===== MOVIES MANAGEMENT =====
+// Completely isolated movie management
+
 async function loadMovies() {
     try {
         const response = await APIClient.getMovies('showing', 1000, 0);
@@ -35,30 +37,24 @@ async function loadMovies() {
             `;
             tbody.appendChild(row);
         });
-
-        // Populate movie select in showing form
-        const movieSelect = document.getElementById('showing-movie');
-        if (movieSelect) {
-            movieSelect.innerHTML = '<option value="">Chọn phim...</option>';
-            movies.forEach(movie => {
-                const option = document.createElement('option');
-                option.value = movie.id;
-                option.textContent = movie.title;
-                movieSelect.appendChild(option);
-            });
-        }
     } catch (error) {
         console.error('Error loading movies:', error);
     }
 }
 
 function openMovieModal() {
+    console.log('openMovieModal called');
     document.getElementById('movie-modal-title').textContent = 'Thêm Phim';
     document.getElementById('movie-form').reset();
     document.getElementById('poster-preview').innerHTML = '';
     document.getElementById('movie-poster').value = '';
-    document.getElementById('movie-modal').style.display = 'flex';
     document.getElementById('movie-form').dataset.movieId = '';
+    
+    const modal = document.getElementById('movie-modal');
+    if (modal) {
+        modal.style.display = 'flex';
+        console.log('Movie modal opened');
+    }
     
     // Setup Enter key handler for form submission
     setupFormEnterKey();
@@ -133,6 +129,7 @@ async function editMovie(id) {
         const movieModal = document.getElementById('movie-modal');
         if (movieModal) {
             movieModal.style.display = 'flex';
+            console.log('Movie modal opened for editing');
         } else {
             console.error('movie-modal element not found');
             showNotification('Lỗi: Modal không tồn tại', 'error');
@@ -248,39 +245,35 @@ async function deleteMovieConfirm(id) {
 }
 
 // Handle poster file input change
-if (document.getElementById('movie-poster-file')) {
-    document.getElementById('movie-poster-file').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const preview = document.getElementById('poster-preview');
-                preview.innerHTML = `<img src="${event.target.result}" alt="Preview">`;
-            };
-            reader.readAsDataURL(file);
-        }
-    });
+function handlePosterChange() {
+    const fileInput = document.getElementById('movie-poster-file');
+    if (fileInput.files.length > 0) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('poster-preview').innerHTML = 
+                `<img src="${e.target.result}" alt="Preview" style="max-width: 100px; max-height: 100px;">`;
+        };
+        reader.readAsDataURL(file);
+    }
 }
 
-// Setup Enter key submission for forms
+// Setup Enter key handler for movie form
 function setupFormEnterKey() {
     const form = document.getElementById('movie-form');
     if (!form) return;
     
-    // Get all input and select elements (not textarea)
-    const inputs = form.querySelectorAll('input:not([type="button"]):not([type="submit"]), select');
+    const inputs = form.querySelectorAll('input:not([type="file"]):not([type="button"]):not([type="submit"]), select, textarea');
     
     inputs.forEach(input => {
         input.addEventListener('keypress', function(e) {
-            // Check if Enter key was pressed
             if (e.key === 'Enter' || e.keyCode === 13) {
-                e.preventDefault();
-                // Submit the form
-                const submitBtn = form.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.click();
-                } else {
-                    form.dispatchEvent(new Event('submit'));
+                if (input.id !== 'movie-description') {
+                    e.preventDefault();
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.click();
+                    }
                 }
             }
         });

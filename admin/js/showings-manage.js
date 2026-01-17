@@ -1,4 +1,6 @@
-// ===== SHOWINGS =====
+// ===== SHOWINGS MANAGEMENT =====
+// Completely isolated showing management
+
 async function loadShowings() {
     try {
         const response = await APIClient.getShowings();
@@ -45,21 +47,22 @@ function openShowingModal() {
     
     const modal = document.getElementById('showing-modal');
     console.log('Modal element:', modal);
-    if (modal) {
-        modal.style.display = 'flex';
-        console.log('Modal display set to flex');
-    } else {
-        console.error('showing-modal element not found!');
-    }
     
-    // Load movies into select (async)
+    // Load movies first, THEN show modal
     loadMoviesForSelect().then(() => {
-        console.log('Movies loaded into select');
+        if (modal) {
+            modal.style.display = 'flex';
+            console.log('Modal display set to flex');
+        } else {
+            console.error('showing-modal element not found!');
+        }
+        setupFormEnterKeyForShowing();
     }).catch(err => {
         console.error('Error loading movies:', err);
+        if (modal) {
+            modal.style.display = 'flex';
+        }
     });
-    
-    setupFormEnterKeyForShowing();
 }
 
 // Load movies for select dropdown
@@ -106,6 +109,7 @@ async function editShowing(id) {
         document.getElementById('showing-seats').value = showing.total_seats;
         document.getElementById('showing-date').value = showing.showing_date;
         document.getElementById('showing-time').value = showing.showing_time;
+        document.getElementById('showing-price').value = showing.price || 0;
         document.getElementById('showing-form').dataset.showingId = id;
         document.getElementById('showing-modal').style.display = 'flex';
         setupFormEnterKeyForShowing();
