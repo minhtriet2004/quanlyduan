@@ -21,14 +21,8 @@
             <p><b>Khởi chiếu:</b> <span id="release"></span></p>
             <p><b>Mô tả:</b> <span id="description"></span></p>
 
-            <label>Chọn số lượng vé:</label><br>
-            <select id="quantity">
-                <option value="1">1 vé</option>
-                <option value="2">2 vé</option>
-                <option value="3">3 vé</option>
-                <option value="4">4 vé</option>
-                <option value="5">5 vé</option>
-            </select>
+            <label>Nhập số lượng vé:</label><br>
+            <input id="quantity" type="number" min="1" max="48" value="1">
             <br><br>
             
             <p><b>Tổng tiền:</b> <span id="totalPrice"></span> VND</p>
@@ -108,7 +102,7 @@
     }
 
     function setupQuantityListener() {
-        document.getElementById('quantity').addEventListener('change', updateTotalPrice);
+        document.getElementById('quantity').addEventListener('input', updateTotalPrice);
     }
 
     function updateTotalPrice() {
@@ -144,13 +138,13 @@
             return;
         }
 
-        const quantity = document.getElementById('quantity').value;
+        const quantity = parseInt(document.getElementById('quantity').value) || 1;
         // Store booking info in session storage
         sessionStorage.setItem('bookingInfo', JSON.stringify({
             movieId: currentMovie.id,
             movieTitle: currentMovie.title,
             quantity: quantity,
-            totalPrice: parseInt(document.getElementById('quantity').value) * ticketPrice
+            totalPrice: quantity * ticketPrice
         }));
 
         // Redirect to choose-room (chọn phòng TRƯỚC suất chiếu)
@@ -160,4 +154,3 @@
 
 </body>
 </html>
-
