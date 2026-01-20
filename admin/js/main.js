@@ -41,14 +41,21 @@ function checkAdminLogin() {
 function initializeDashboard() {
     loadDashboard();
     loadMovies();
-    loadShowings();
     // loadCinemas(); // Commented out - no cinemas section in UI
     loadBookings();
     loadUsers();
 }
 
+let eventListenersInitialized = false;
+
 function setupEventListeners() {
     console.log('Setting up event listeners...');
+    
+    // Only setup once to avoid duplicate listeners
+    if (eventListenersInitialized) {
+        console.log('Event listeners already initialized, skipping...');
+        return;
+    }
     
     // Sidebar navigation - simpler version
     const navLinks = document.querySelectorAll('.nav-link');
@@ -86,16 +93,8 @@ function setupEventListeners() {
     if (addMovieBtn) addMovieBtn.addEventListener('click', openMovieModal);
     if (movieForm) movieForm.addEventListener('submit', saveMovie);
 
-    // Showing operations
-    const addShowingBtn = document.getElementById('add-showing-btn');
-    const showingForm = document.getElementById('showing-form');
-    if (addShowingBtn) addShowingBtn.addEventListener('click', openShowingModal);
-    if (showingForm) showingForm.addEventListener('submit', saveShowing);
-
-    // Modal close buttons
-    document.querySelectorAll('.modal-close, .modal-close-btn').forEach(btn => {
-        btn.addEventListener('click', closeModal);
-    });
+    // Note: Modal close buttons are handled by event delegation in utils.js
+    // to avoid duplicate listeners
 
     // Filter bookings
     const statusFilter = document.getElementById('booking-status-filter');
@@ -104,6 +103,8 @@ function setupEventListeners() {
     // Logout
     const logoutLink = document.getElementById('logout');
     if (logoutLink) logoutLink.addEventListener('click', logout);
+    
+    eventListenersInitialized = true;
 }
 
 // ===== SECTION NAVIGATION =====
@@ -121,7 +122,6 @@ function switchSection(sectionId) {
         // Reload data for the section
         if (sectionId === 'dashboard') loadDashboard();
         else if (sectionId === 'movies') loadMovies();
-        else if (sectionId === 'showings') loadShowings();
         else if (sectionId === 'bookings') loadBookings();
         else if (sectionId === 'users') loadUsers();
     }
@@ -152,9 +152,9 @@ function handleNotificationClick() {
         if (badge) {
             badge.style.display = 'none';
         }
-        Notification.success('Đã xem ' + notificationCount + ' thông báo mới');
+        showNotification('Đã xem ' + notificationCount + ' thông báo mới', 'success');
     } else {
         // Nếu không có thông báo
-        Notification.info('Bạn không có thông báo mới');
+        showNotification('Bạn không có thông báo mới', 'info');
     }
 }

@@ -32,6 +32,7 @@ async function loadMovies() {
                 <td><span class="status-badge status-${movie.status}">${getStatusLabel(movie.status)}</span></td>
                 <td>
                     <button class="action-btn edit" onclick="editMovie(${movie.id})">Sửa</button>
+                    <button class="action-btn view" onclick="viewShowings(${movie.id})">Suất Chiếu</button>
                     <button class="action-btn delete" onclick="deleteMovieConfirm(${movie.id})">Xóa</button>
                 </td>
             `;
@@ -266,9 +267,13 @@ function setupFormEnterKey() {
     const inputs = form.querySelectorAll('input:not([type="file"]):not([type="button"]):not([type="submit"]), select, textarea');
     
     inputs.forEach(input => {
-        input.addEventListener('keypress', function(e) {
+        // Clone and replace to remove old listeners
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        newInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter' || e.keyCode === 13) {
-                if (input.id !== 'movie-description') {
+                if (newInput.id !== 'movie-description') {
                     e.preventDefault();
                     const submitBtn = form.querySelector('button[type="submit"]');
                     if (submitBtn) {
@@ -279,3 +284,196 @@ function setupFormEnterKey() {
         });
     });
 }
+
+// ===== SHOWINGS MANAGEMENT WITHIN MOVIES =====
+// Load and display showings for a specific movie
+async function viewShowings(movieId) {
+    try {
+        console.log('Viewing showings for movie:', movieId);
+        
+        // Get all showings
+        const response = await APIClient.getShowings();
+        if (!response.success) {
+            showNotification('Lỗi khi tải suất chiếu', 'error');
+            return;
+        }
+
+        const allShowings = response.data.showings || [];
+        const movieShowings = allShowings.filter(s => s.movie_id === movieId);
+
+        // Show modal with showings list
+        showShowingsModal(movieId, movieShowings);
+    } catch (error) {
+        console.error('Error viewing showings:', error);
+        showNotification('Lỗi khi tải suất chiếu: ' + error.message, 'error');
+    }
+}
+
+function showShowingsModal(movieId, showings) {
+    // Create modal dynamically
+    let modal = document.getElementById('showings-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'showings-modal';
+        modal.className = 'modal';
+        modal.style.display = 'none';
+        document.body.appendChild(modal);
+    }
+
+    let html = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Suất Chiếu</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div style="padding: 20px; max-height: 500px; overflow-y: auto;">
+                <button class="btn btn-primary" onclick="addShowingForMovie(${movieId})" style="margin-bottom: 20px;">
+                    <i class="fas fa-plus"></i> Thêm Suất Chiếu
+                </button>
+    `;
+
+    if (showings.length === 0) {
+        html += '<p style="text-align: center; color: #999;">Không có suất chiếu nào</p>';
+    } else {
+        html += '<table class="data-table" style="width: 100%; margin-top: 15px;">';
+        html += '<thead><tr>';
+        html += '<th>Phòng</th><th>Ngày/Giờ</th><th>Ghế</th><th>Hành Động</th>';
+        html += '</tr></thead><tbody>';
+        
+        showings.forEach(showing => {
+            html += `<tr>
+                <td>Phòng ${showing.room_number}</td>
+                <td>${formatDate(showing.showing_date)} ${showing.showing_time}</td>
+                <td>${showing.available_seats}/${showing.total_seats}</td>
+                <td>
+                    <button class="action-btn edit" onclick="editShowingForMovie(${showing.id}, ${movieId})" style="padding: 5px 10px; font-size: 12px;">Sửa</button>
+                    <button class="action-btn delete" onclick="deleteShowingConfirm(${showing.id})" style="padding: 5px 10px; font-size: 12px;">Xóa</button>
+                </td>
+            </tr>`;
+        });
+        
+        html += '</tbody></table>';
+    }
+
+    html += `
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-close-btn">Đóng</button>
+            </div>
+        </div>
+    `;
+
+    modal.innerHTML = html;
+    modal.style.display = 'flex';
+
+    // Add close handler
+    modal.querySelector('.modal-close').addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+    modal.querySelector('.modal-close-btn').addEventListener('click', () => {
+        modal.style.display = 'none';
+    });
+}
+
+function addShowingForMovie(movieId) {
+    // Create a simple form to add showing
+    const form = prompt('Nhập thông tin suất chiếu mới:\nĐịnh dạng: Phòng|Ghế|Ngày(YYYY-MM-DD)|Giờ(HH:MM)|Giá\nVD: 1|48|2026-01-22|14:00|120000');
+    
+    if (!form) return;
+
+    const parts = form.split('|');
+    if (parts.length !== 5) {
+        showNotification('Định dạng không đúng', 'error');
+        return;
+    }
+
+    const [room, seats, date, time, price] = parts;
+    saveNewShowing(movieId, parseInt(room), parseInt(seats), date.trim(), time.trim(), parseFloat(price));
+}
+
+async function saveNewShowing(movieId, room, seats, date, time, price) {
+    try {
+        const showingData = {
+            movie_id: movieId,
+            room_number: room,
+            total_seats: seats,
+            showing_date: date,
+            showing_time: time,
+            price: price
+        };
+
+        const response = await APIClient.addShowing(showingData);
+        if (response.success) {
+            showNotification('Thêm suất chiếu thành công!', 'success');
+            viewShowings(movieId);
+        } else {
+            showNotification(response.message || 'Lỗi!', 'error');
+        }
+    } catch (error) {
+        console.error('Error saving showing:', error);
+        showNotification('Lỗi khi lưu suất chiếu!', 'error');
+    }
+}
+
+function editShowingForMovie(showingId, movieId) {
+    const newInfo = prompt('Nhập thông tin cập nhật:\nĐịnh dạng: Phòng|Ghế|Ngày(YYYY-MM-DD)|Giờ(HH:MM)|Giá');
+    
+    if (!newInfo) return;
+
+    const parts = newInfo.split('|');
+    if (parts.length !== 5) {
+        showNotification('Định dạng không đúng', 'error');
+        return;
+    }
+
+    const [room, seats, date, time, price] = parts;
+    updateShowing(showingId, movieId, parseInt(room), parseInt(seats), date.trim(), time.trim(), parseFloat(price));
+}
+
+async function updateShowing(showingId, movieId, room, seats, date, time, price) {
+    try {
+        const showingData = {
+            id: showingId,
+            movie_id: movieId,
+            room_number: room,
+            total_seats: seats,
+            showing_date: date,
+            showing_time: time,
+            price: price
+        };
+
+        const response = await APIClient.updateShowing(showingData);
+        if (response.success) {
+            showNotification('Cập nhật suất chiếu thành công!', 'success');
+            viewShowings(movieId);
+        } else {
+            showNotification(response.message || 'Lỗi!', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating showing:', error);
+        showNotification('Lỗi khi cập nhật suất chiếu!', 'error');
+    }
+}
+
+async function deleteShowingConfirm(showingId) {
+    if (!confirm('Bạn chắc chắn muốn xóa suất chiếu này?')) return;
+
+    try {
+        const response = await APIClient.deleteShowing(showingId);
+        if (response.success) {
+            showNotification('Xóa suất chiếu thành công!', 'success');
+            // Reload current movie showings
+            const modal = document.getElementById('showings-modal');
+            if (modal && modal.style.display === 'flex') {
+                // Try to get movieId from modal context or reload all
+                location.reload();
+            }
+        } else {
+            showNotification(response.message || 'Lỗi!', 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting showing:', error);
+        showNotification('Lỗi khi xóa suất chiếu!', 'error');
+    }
+}
+

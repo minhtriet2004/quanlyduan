@@ -85,7 +85,7 @@
                     💸 Thanh Toán Online
                 </button>
 
-                <button id="\cashBtn" 
+                <button id="cashBtn" 
                     style="padding: 15px; background: #1b2150; border: 2px solid #00b7ff; border-radius: 8px; color: #00b7ff; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
                    💵Trả bằng Tiền Mặt Tại Rạp
                 </button>
@@ -554,6 +554,11 @@
             proceedWithBooking();
         });
         
+        document.getElementById('cashBtn').addEventListener('click', () => {
+            selectedPaymentMethod = 'cash';
+            proceedWithBooking();
+        });
+        
         document.getElementById('cancelPaymentBtn').addEventListener('click', hidePaymentModal);
         
         // Close modal when clicking outside of it
@@ -576,6 +581,7 @@
         // Add hover effects
         const depositBtn = document.getElementById('depositBtn');
         const bankBtn = document.getElementById('bankBtn');
+        const cashBtn = document.getElementById('cashBtn');
         
         depositBtn.addEventListener('mouseenter', function() {
             this.style.background = '#00b7ff';
@@ -591,6 +597,15 @@
             this.style.color = '#141a3a';
         });
         bankBtn.addEventListener('mouseleave', function() {
+            this.style.background = '#1b2150';
+            this.style.color = '#00b7ff';
+        });
+        
+        cashBtn.addEventListener('mouseenter', function() {
+            this.style.background = '#00b7ff';
+            this.style.color = '#141a3a';
+        });
+        cashBtn.addEventListener('mouseleave', function() {
             this.style.background = '#1b2150';
             this.style.color = '#00b7ff';
         });

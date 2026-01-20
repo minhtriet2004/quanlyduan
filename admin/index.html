@@ -24,10 +24,6 @@
                 <i class="fas fa-film"></i>
                 <span>Quản Lý Phim</span>
             </a>
-            <a href="#showings" class="nav-link" data-section="showings">
-                <i class="fas fa-clock"></i>
-                <span>Suất Chiếu</span>
-            </a>
             <a href="#bookings" class="nav-link" data-section="bookings">
                 <i class="fas fa-ticket-alt"></i>
                 <span>Đơn Vé</span>
@@ -175,33 +171,6 @@
                             </tr>
                         </thead>
                         <tbody id="movies-body"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- SUẤT CHIẾU -->
-            <section id="showings" class="section">
-                <div class="section-header">
-                    <h1>Suất Chiếu</h1>
-                    <button class="btn btn-primary" id="add-showing-btn">
-                        <i class="fas fa-plus"></i> Thêm Suất Chiếu
-                    </button>
-                </div>
-
-                <div class="card">
-                    <table id="showings-table" class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Phim</th>
-                                <th>Rạp</th>
-                                <th>Phòng</th>
-                                <th>Ngày/Giờ</th>
-                                <th>Ghế Còn Lại</th>
-                                <th>Hành Động</th>
-                            </tr>
-                        </thead>
-                        <tbody id="showings-body"></tbody>
                     </table>
                 </div>
             </section>
@@ -373,61 +342,15 @@
         </div>
     </div>
 
-    <!-- MODAL THÊM/SỬA SUẤT CHIẾU -->
-    <div id="showing-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Thêm Suất Chiếu</h2>
-                <button class="modal-close">&times;</button>
-            </div>
-            <form id="showing-form">
-                <div class="form-group">
-                    <label>Chọn Phim *</label>
-                    <select id="showing-movie" required></select>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Phòng Chiếu *</label>
-                        <input type="number" id="showing-room" min="1" max="20" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Số Ghế *</label>
-                        <input type="number" id="showing-seats" value="48" min="10" max="200" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Ngày Chiếu *</label>
-                        <input type="date" id="showing-date" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Giờ Chiếu *</label>
-                        <input type="time" id="showing-time" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Giá Vé *</label>
-                        <input type="number" id="showing-price" min="1000" step="1000" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary modal-close-btn">Hủy</button>
-                    <button type="submit" class="btn btn-primary">Lưu</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- Load các JavaScript modules -->
     <script src="../js/storage.js"></script>
     <script src="../js/api-client.js"></script>
     <script src="../js/notification.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/dashboard.js"></script>
-    <script src="js/showings-manage.js"></script>
     <script src="js/movies-manage.js"></script>
     <script src="js/bookings.js"></script>
     <script src="js/users.js"></script>
-    <script src="js/main.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

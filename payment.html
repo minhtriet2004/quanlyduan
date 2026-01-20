@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Thanh toán - Quản Lý Dự Án</title>
     <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/notification.css">
     <style>
         body {
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -80,6 +81,7 @@
         <button id="check-payment" class="check-btn">Kiểm tra thanh toán</button>
     </div>
 
+    <script src="js/notification.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Giả lập dữ liệu từ localStorage hoặc URL params
@@ -93,10 +95,11 @@
 
             // Thêm event listener cho nút kiểm tra thanh toán
             document.getElementById('check-payment').addEventListener('click', function() {
-                alert('Thanh toán thành công!');
-                // Chuyển hướng về trang lịch sử đặt vé sau khi thanh toán thành công
-                window.location.href = 'bookings-history.html';
-                
+               Notification.success('Thanh toán thành công! Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.');
+                // Chuyển hướng về trang lịch sử đặt vé sau 2 giây (để notification hiện)
+                setTimeout(() => {
+                    window.location.href = 'bookings-history.html';
+                }, 2000);
             });
         });
     </script>

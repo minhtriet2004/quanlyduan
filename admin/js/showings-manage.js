@@ -192,7 +192,11 @@ function setupFormEnterKeyForShowing() {
     const inputs = form.querySelectorAll('input:not([type="button"]):not([type="submit"]), select');
     
     inputs.forEach(input => {
-        input.addEventListener('keypress', function(e) {
+        // Clone and replace to remove old listeners
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        newInput.addEventListener('keypress', function(e) {
             // Check if Enter key was pressed
             if (e.key === 'Enter' || e.keyCode === 13) {
                 e.preventDefault();
