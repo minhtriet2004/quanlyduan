@@ -3,9 +3,11 @@ require_once 'config.php';
 
 try {
     $method = getRequestMethod();
-    $input = getJsonInput();
+    
+    // Only parse JSON for POST requests
+    $input = ($method === 'POST') ? getJsonInput() : null;
 
-    if (!$input) {
+    if ($method === 'POST' && !$input) {
         sendResponse(false, 'Invalid JSON input', null, 400);
     }
 
@@ -136,7 +138,22 @@ try {
         else {
             sendResponse(false, 'Invalid action', null, 400);
         }
-    } else {
+    } 
+    // Get all users (Admin only)
+    else if ($method === 'GET') {
+        $stmt = $conn->prepare("SELECT id, username, email, full_name, phone, role, created_at FROM users ORDER BY created_at DESC");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
+
+        $users = [];
+        while ($row = $result->fetch_assoc()) {
+            $users[] = $row;
+        }
+
+        sendResponse(true, 'Users retrieved successfully', ['users' => $users]);
+    }
+    else {
         sendResponse(false, 'Invalid request method', null, 405);
     }
 } catch (Exception $e) {

@@ -102,7 +102,26 @@
     }
 
     function setupQuantityListener() {
-        document.getElementById('quantity').addEventListener('input', updateTotalPrice);
+        const quantityElement = document.getElementById('quantity');
+        quantityElement.addEventListener('input', updateTotalPrice);
+        quantityElement.addEventListener('change', validateQuantity);
+    }
+
+    function validateQuantity() {
+        const quantityElement = document.getElementById('quantity');
+        let quantity = parseInt(quantityElement.value) || 1;
+
+        if (quantity > 48) {
+            Notification.warning('Số lượng ghế tối đa là 48. Đã điều chỉnh thành 48.');
+            quantityElement.value = 48;
+            quantity = 48;
+        }
+
+        if (quantity < 1) {
+            quantityElement.value = 1;
+        }
+
+        updateTotalPrice();
     }
 
     function updateTotalPrice() {
@@ -138,7 +157,20 @@
             return;
         }
 
-        const quantity = parseInt(document.getElementById('quantity').value) || 1;
+        let quantity = parseInt(document.getElementById('quantity').value) || 1;
+
+        // Validate quantity
+        if (quantity < 1) {
+            Notification.error('Vui lòng nhập số lượng vé từ 1 trở lên');
+            return;
+        }
+
+        if (quantity > 48) {
+            Notification.error('Số lượng ghế tối đa là 48');
+            document.getElementById('quantity').value = 48;
+            return;
+        }
+
         // Store booking info in session storage
         sessionStorage.setItem('bookingInfo', JSON.stringify({
             movieId: currentMovie.id,

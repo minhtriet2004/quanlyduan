@@ -24,6 +24,10 @@ class APIClient {
         return this.post('auth.php', { ...data, action: 'admin_login' });
     }
 
+    static async getUsers() {
+        return this.get('auth.php');
+    }
+
     // Movies endpoints
     static async getMovies(status = 'showing', limit = 100, offset = 0) {
         return this.get(`movies.php?limit=${limit}&offset=${offset}`);

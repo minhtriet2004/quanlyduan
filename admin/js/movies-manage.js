@@ -325,6 +325,9 @@ function showShowingsModal(movieId, showings, moviePrice) {
         document.body.appendChild(modal);
     }
 
+    // Store movieId in modal for later use
+    modal.dataset.movieId = movieId;
+
     let html = `
         <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
@@ -638,11 +641,16 @@ async function deleteShowingConfirm(showingId) {
         const response = await APIClient.deleteShowing(showingId);
         if (response.success) {
             showNotification('Xóa suất chiếu thành công!', 'success');
+            
             // Reload current movie showings
             const modal = document.getElementById('showings-modal');
             if (modal && modal.style.display === 'flex') {
-                // Try to get movieId from modal context or reload all
-                location.reload();
+                const movieId = parseInt(modal.dataset.movieId);
+                if (movieId) {
+                    await viewShowings(movieId);
+                } else {
+                    location.reload();
+                }
             }
         } else {
             showNotification(response.message || 'Lỗi!', 'error');
