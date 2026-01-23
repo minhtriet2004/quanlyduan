@@ -86,7 +86,23 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Giả lập dữ liệu từ localStorage hoặc URL params
             const movieName = localStorage.getItem('selectedMovie') || 'Tên Phim';
-            const selectedSeats = localStorage.getItem('selectedSeats') || 'A1, A2';
+            let selectedSeats = localStorage.getItem('selectedSeats');
+            
+            // Nếu không có selectedSeats, thử lấy từ JSON
+            if (!selectedSeats) {
+                try {
+                    const seatsJSON = localStorage.getItem('selectedSeatsJSON');
+                    if (seatsJSON) {
+                        const seatsArray = JSON.parse(seatsJSON);
+                        selectedSeats = seatsArray.map(s => s.seat_number || s.seatNumber || 'Ghế').join(', ');
+                    } else {
+                        selectedSeats = 'A1, A2';
+                    }
+                } catch (e) {
+                    selectedSeats = 'A1, A2';
+                }
+            }
+            
             const amount = localStorage.getItem('totalAmount') || '100000';
 
             document.getElementById('movie-name').textContent = movieName;

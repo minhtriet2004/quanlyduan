@@ -196,7 +196,7 @@
                         <h3 class="booking-title">${booking.title}</h3>
                         <div class="booking-info">
                             <p><strong>Mã đặt vé:</strong> #${booking.id}</p>
-                            <p><strong>Ghế:</strong> ${booking.seat_numbers ? booking.seat_numbers.join(', ') : booking.total_seats + ' ghế'}</p>
+                            <p><strong>Ghế:</strong> ${booking.seat_numbers && booking.seat_numbers.length > 0 ? (Array.isArray(booking.seat_numbers) ? booking.seat_numbers.join(', ') : booking.seat_numbers) : 'Không có thông tin ghế'}</p>
                             <p><strong>Giá khi đặt:</strong> <span class="price">${formatPrice(booking.total_price)}</span></p>
                             <p><strong>Giá hiện tại:</strong> <span class="price" style="color: #ffff00;">${formatPrice(currentTotal)}</span></p>
                             <p><strong>Ngày đặt:</strong> ${formatDateTime(booking.booking_date)}</p>

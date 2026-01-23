@@ -621,9 +621,15 @@
         
         if (selectedPaymentMethod === 'bank_transfer') {
             // Lưu thông tin vào localStorage để trang thanh toán sử dụng
-            localStorage.setItem('selectedMovie', currentMovie.title);
-            localStorage.setItem('selectedSeats', selectedSeats.map(s => s.seat_number).join(', '));
+            const seatNumbers = selectedSeats.map(s => {
+                // Xử lý cả trường hợp s.seat_number và các property khác
+                return s.seat_number || s.seatNumber || s.name || 'Ghế';
+            }).join(', ');
+            
+            localStorage.setItem('selectedMovie', currentMovie.title || 'Phim');
+            localStorage.setItem('selectedSeats', seatNumbers);
             localStorage.setItem('totalAmount', (selectedSeats.length * currentMovie.price).toString());
+            localStorage.setItem('selectedSeatsJSON', JSON.stringify(selectedSeats));
             window.location.href = 'payment.html';
         } else {
             await confirmBooking();
