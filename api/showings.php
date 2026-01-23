@@ -6,9 +6,28 @@ $input = getJsonInput();
 
 // Get showings
 if ($method === 'GET') {
+    $id = $_GET['id'] ?? null;
     $movie_id = $_GET['movie_id'] ?? null;
     $showing_date = $_GET['showing_date'] ?? null;
 
+    // Get single showing by ID
+    if ($id) {
+        $id = intval($id);
+        $stmt = $conn->prepare("SELECT s.*, m.title, m.poster_image FROM showings s JOIN movies m ON s.movie_id = m.id WHERE s.id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $stmt->close();
+
+        if ($result->num_rows === 0) {
+            sendResponse(false, 'Showing not found', null, 404);
+        }
+
+        $showing = $result->fetch_assoc();
+        sendResponse(true, 'Showing retrieved successfully', ['showing' => $showing]);
+    }
+
+    // Get multiple showings with filters
     $query = "SELECT s.*, m.title, m.poster_image FROM showings s JOIN movies m ON s.movie_id = m.id WHERE 1=1";
     $params = [];
     $types = "";

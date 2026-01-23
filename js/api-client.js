@@ -57,6 +57,10 @@ class APIClient {
         return this.get(url);
     }
 
+    static async getShowingById(id) {
+        return this.get(`showings.php?id=${id}`);
+    }
+
     static async addShowing(data) {
         return this.post('showings.php', { ...data, action: 'add' });
     }

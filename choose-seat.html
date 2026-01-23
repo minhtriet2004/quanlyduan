@@ -522,7 +522,7 @@
         document.querySelectorAll('.row .seat.selected').forEach(seat => {
             selectedSeats.push({
                 id: parseInt(seat.dataset.id),
-                number: seat.dataset.number
+                seat_number: seat.dataset.number
             });
         });
         document.getElementById('count').textContent = selectedSeats.length;
