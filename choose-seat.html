@@ -619,17 +619,21 @@
     async function proceedWithBooking() {
         hidePaymentModal();
         
-        if (selectedPaymentMethod === 'bank_transfer') {
+        if (selectedPaymentMethod === 'bank_transfer' || selectedPaymentMethod === 'deposit') {
             // Lưu thông tin vào localStorage để trang thanh toán sử dụng
             const seatNumbers = selectedSeats.map(s => {
                 // Xử lý cả trường hợp s.seat_number và các property khác
                 return s.seat_number || s.seatNumber || s.name || 'Ghế';
             }).join(', ');
             
+            const totalAmount = selectedSeats.length * currentMovie.price;
+            const displayAmount = selectedPaymentMethod === 'deposit' ? totalAmount * 0.5 : totalAmount;
+            
             localStorage.setItem('selectedMovie', currentMovie.title || 'Phim');
             localStorage.setItem('selectedSeats', seatNumbers);
-            localStorage.setItem('totalAmount', (selectedSeats.length * currentMovie.price).toString());
+            localStorage.setItem('totalAmount', displayAmount.toString());
             localStorage.setItem('selectedSeatsJSON', JSON.stringify(selectedSeats));
+            localStorage.setItem('paymentMethod', selectedPaymentMethod);
             window.location.href = 'payment.html';
         } else {
             await confirmBooking();
